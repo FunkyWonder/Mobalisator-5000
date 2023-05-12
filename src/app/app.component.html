@@ -1,5 +1,12 @@
 <swiper-container class="swiper" #swiperRef init="false">
-  <swiper-slide>Slide 1</swiper-slide>
+  <swiper-slide>
+    <ktd-grid [cols]="cols" [rowHeight]="rowHeight" [layout]="layout" (layoutUpdated)="onLayoutUpdated($event)">
+      <ktd-grid-item *ngFor="let item of layout; trackBy:trackById" [id]="item.id">
+        <!-- Your grid item content goes here -->
+        <h1>Text</h1>
+      </ktd-grid-item>
+    </ktd-grid>
+  </swiper-slide>
   <swiper-slide>Slide 2</swiper-slide>
   <swiper-slide>Slide 3</swiper-slide>
 </swiper-container>
@@ -7,6 +14,10 @@
 <style>
   .swiper {
     height: 100vh;
+  }
+  ktd-grid-item {
+    background-color: blue;
+    border: 10px solid red;
   }
 </style>
 
