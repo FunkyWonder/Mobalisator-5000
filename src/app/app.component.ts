@@ -20,7 +20,23 @@ export class AppComponent {
     enabled: true,
     pagination: true,
     autoHeight: true,
+    allowTouchMove: false,
     direction: 'vertical',
+    keyboard: {
+      enabled: true,
+    },
+  }
+
+  keyDown(event: KeyboardEvent) {
+    if(event.key == "arrowup") {
+      this.swiper?.slidePrev(); 
+      //Up arrow pressed
+    }
+
+    if(event.key == "arrowdown") {
+      this.swiper?.slideNext();
+      //Down arrow pressed
+    }   
   }
 
   disableDrag = false;
