@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
 import { ktdTrackById, KtdGridLayout } from '@katoid/angular-grid-layout';
+import * as fs from 'fs';
 
 @Component({
   selector: 'app-root',
@@ -56,7 +57,13 @@ export class AppComponent {
   trackById = ktdTrackById
 
   onLayoutUpdated(event: KtdGridLayout) {
+    console.log(JSON.stringify(event));
+    console.log(this.swiper?.activeIndex);
+    var newLayout = JSON.stringify(event);
+    var currentPageIndex = Number(this.swiper?.activeIndex);
+    var configFile = JSON.parse(fs.readFileSync('../../../config/layout.json', 'utf-8'));
 
+    configFile[currentPageIndex].layout = newLayout;
   };
 
   ngOnInit() {
