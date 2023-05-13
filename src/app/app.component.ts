@@ -1,7 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
 import { ktdTrackById, KtdGridLayout } from '@katoid/angular-grid-layout';
-import * as fs from 'fs';
 
 @Component({
   selector: 'app-root',
@@ -48,6 +47,7 @@ export class AppComponent {
 
   cols: number = 6;
   rowHeight: number = 100;
+
   layout: KtdGridLayout = [
       {id: '0', x: 0, y: 0, w: 3, h: 3},
       {id: '1', x: 3, y: 0, w: 3, h: 3},
@@ -57,14 +57,18 @@ export class AppComponent {
   trackById = ktdTrackById
 
   onLayoutUpdated(event: KtdGridLayout) {
-    console.log(JSON.stringify(event));
-    console.log(this.swiper?.activeIndex);
     var newLayout = JSON.stringify(event);
-    var currentPageIndex = Number(this.swiper?.activeIndex);
-    var configFile = JSON.parse(fs.readFileSync('../../../config/layout.json', 'utf-8'));
-
-    configFile[currentPageIndex].layout = newLayout;
+    var currentPageIndex = this.swiper?.activeIndex;
+    localStorage.setItem("project"+currentPageIndex, newLayout);
+    console.log("Saving layout: "+newLayout+" on page "+currentPageIndex);
   };
+
+  onFloatClick() {
+    var currentPageIndex = this.swiper?.activeIndex;
+    var newLayout = localStorage.getItem("project"+currentPageIndex);
+    console.log("Loading config: "+newLayout);
+    this.layout = JSON.parse(newLayout!);
+  }
 
   ngOnInit() {
     const swiperEl = this._swiperRef.nativeElement

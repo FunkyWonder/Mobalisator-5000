@@ -11,6 +11,8 @@
   <swiper-slide>Slide 3</swiper-slide>
 </swiper-container>
 
+<button class="float" (click)="onFloatClick()">Icon</button>
+
 <style>
   .swiper {
     height: 100vh;
@@ -21,6 +23,14 @@
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
+  }
+  .float {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      width: 5em;
+      height: 5em;
+      z-index: 500;
   }
 </style>
 
