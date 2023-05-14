@@ -145,7 +145,7 @@ export class AppComponent {
 
   // TODO: this needs clean up
   createChart(): void {
-    Chart.register();
+    Chart.register(...registerables);
 
     const data = {
       labels: ['January', 'February', 'March', 'April', 'May'],
@@ -169,10 +169,9 @@ export class AppComponent {
       data: data,
       options: options
     }
-    const chartItem: ChartItem = document.getElementById('my-chart') as ChartItem
+    const chartItem: ChartItem = document.getElementById('test-chart') as ChartItem;
 
-    new Chart(chartItem, config)
-
+    new Chart(chartItem, config);
   }
 
   ngOnInit() {
