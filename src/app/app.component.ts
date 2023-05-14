@@ -1,6 +1,7 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
 import { ktdTrackById, KtdGridLayout } from '@katoid/angular-grid-layout';
+import { NgStyle } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -31,7 +32,8 @@ export class AppComponent {
     },
     observer: true,
   };
-
+  
+  @HostListener('document:keypress', ['$event'])
   keyDown(event: KeyboardEvent) {
     if(event.key == "arrowup") {
       this.swiper?.slidePrev(); 
@@ -42,6 +44,11 @@ export class AppComponent {
       this.swiper?.slideNext();
       //Down arrow pressed
     }   
+
+    if(event.key == " ") {
+      this.onSidebarOpen();
+      // Spacebar pressed
+    }
   };
 
   cols: number = 6;
@@ -72,6 +79,12 @@ export class AppComponent {
   onNewSlideClick() {
     // Add slide to the beginning
     this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
+  }
+
+  sidebarVisible : boolean = false;
+
+  onSidebarOpen() {
+    this.sidebarVisible = !this.sidebarVisible;
   }
 
   ngOnInit() {

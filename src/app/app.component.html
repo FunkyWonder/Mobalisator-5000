@@ -9,8 +9,10 @@
   </swiper-slide>
 </swiper-container>
 
-<button class="float" (click)="onFloatClick()">Icon</button>
-<swiper-slide><button class="new-slide" (click)="onNewSlideClick()">+</button></swiper-slide>
+<div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
+  <button class="float" (click)="onFloatClick()">Icon</button>
+  <swiper-slide><button class="new-slide" (click)="onNewSlideClick()">+</button></swiper-slide>
+</div>
 
 <style>
   .swiper {
@@ -27,6 +29,14 @@
     -webkit-box-sizing: border-box;
   }
   .float {
+    width: 5rem;
+    height: 5rem;
+  }
+  .new-slide {
+    width: 5rem;
+    height: 5rem;
+  }
+  .openSidebar {
     position: fixed;
     bottom: 1rem;
     right: 1rem;
@@ -34,13 +44,15 @@
     height: 5rem;
     z-index: 500;
   }
-  .new-slide {
+  .sidebar {
     position: fixed;
-    bottom: 1rem;
-    right: 10rem;
-    width: 5rem;
-    height: 5rem;
-    z-index: 500;
+    height: 100vh;
+    top: 0%;
+    /* right: -40vw; */
+    width: 40vw;
+    background-color: black;
+    z-index: 1000;
+    transition: right 300ms;
   }
 </style>
 
