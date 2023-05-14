@@ -10,8 +10,10 @@
 </swiper-container>
 
 <div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
-  <button class="float" (click)="onFloatClick()">Icon</button>
-  <swiper-slide><button class="new-slide" (click)="onNewSlideClick()">+</button></swiper-slide>
+  <button class="button" (click)="onRestoreGridClick()">Restore grid</button>
+  <button class="button" (click)="onAddTileClick()">Add tile</button>
+  <button class="button" (click)="onResetGrid()">Reset grid</button>
+  <swiper-slide><button class="button" (click)="onNewSlideClick()">+</button></swiper-slide>
 </div>
 
 <style>
@@ -28,11 +30,7 @@
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
   }
-  .float {
-    width: 5rem;
-    height: 5rem;
-  }
-  .new-slide {
+  .button {
     width: 5rem;
     height: 5rem;
   }
