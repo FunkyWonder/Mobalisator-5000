@@ -1,8 +1,9 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
 import { ktdTrackById, KtdGridLayout, KtdGridLayoutItem } from '@katoid/angular-grid-layout';
-import { NgStyle } from '@angular/common';
 import { ktdArrayRemoveItem } from './utils';
+import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js'
+
 
 @Component({
   selector: 'app-root',
@@ -80,8 +81,16 @@ export class AppComponent {
   }
 
   onNewSlideClick() {
-    // Add slide to the beginning
+    // Add slide to the beginning and save the amount of slides
     this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
+    localStorage.setItem("project_count", this.swiper!.slides.length.toString());
+  }
+
+  onRestoreSlidesClick() {
+    var slideCount = Number(localStorage.getItem("project_count"));
+    for (let i = 0; i < slideCount; i++) {
+      this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
+    }
   }
 
   onAddTileClick() {
@@ -94,7 +103,7 @@ export class AppComponent {
       y: 0,
       w: 2,
       h: 2
-    }; 
+    };
 
     // Important: Don't mutate the array, create new instance. This way notifies the Grid component that the layout has changed.
     this.layout = [
@@ -112,7 +121,7 @@ export class AppComponent {
     event.preventDefault();
     event.stopPropagation();
   }
-  
+
   /** Removes the item from the layout */
   removeItem(id: string) {
     // Important: Don't mutate the array. Let Angular know that the layout has changed creating a new reference.
@@ -134,6 +143,38 @@ export class AppComponent {
     this.sidebarVisible = !this.sidebarVisible;
   }
 
+  // TODO: this needs clean up
+  createChart(): void {
+    Chart.register();
+
+    const data = {
+      labels: ['January', 'February', 'March', 'April', 'May'],
+      datasets: [{
+        label: 'My First dataset',
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: [10, 5, 2, 20, 30, 45],
+      }]
+    };
+    const options = {
+      scales: {
+        y: {
+          beginAtZero: true,
+          display: false
+        }
+      }
+    }
+    const config: ChartConfiguration = {
+      type: 'line',
+      data: data,
+      options: options
+    }
+    const chartItem: ChartItem = document.getElementById('my-chart') as ChartItem
+
+    new Chart(chartItem, config)
+
+  }
+
   ngOnInit() {
     const swiperEl = this._swiperRef.nativeElement
     Object.assign(swiperEl, this.options)
@@ -141,5 +182,7 @@ export class AppComponent {
     swiperEl.initialize()
 
     this.swiper = this._swiperRef.nativeElement.swiper
+
+    this.createChart()
   }
 }
