@@ -4,6 +4,10 @@
       <ktd-grid-item *ngFor="let item of layout; trackBy:trackById" [id]="item.id">
         <!-- Your grid item content goes here -->
         <h1>Text</h1>
+        <div class="grid-item-remove-handle" *ngIf="!disableRemove" (mousedown)="stopEventPropagation($event)"
+          (click)="removeItem(item.id)">
+          <h1>Remove</h1>
+        </div>
       </ktd-grid-item>
     </ktd-grid>
   </swiper-slide>
@@ -20,9 +24,11 @@
   .swiper {
     height: 100vh;
   }
+
   ktd-grid {
     height: 100%;
   }
+
   ktd-grid-item {
     background-color: blue;
     border: 10px solid red;
@@ -30,10 +36,16 @@
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
   }
+
+  .grid-item-remove-handle {
+    background-color: green;
+  }
+
   .button {
     width: 5rem;
     height: 5rem;
   }
+
   .openSidebar {
     position: fixed;
     bottom: 1rem;
@@ -42,6 +54,7 @@
     height: 5rem;
     z-index: 500;
   }
+
   .sidebar {
     position: fixed;
     height: 100vh;

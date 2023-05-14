@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
 import { ktdTrackById, KtdGridLayout, KtdGridLayoutItem } from '@katoid/angular-grid-layout';
 import { NgStyle } from '@angular/common';
+import { ktdArrayRemoveItem } from './utils';
 
 @Component({
   selector: 'app-root',
@@ -54,6 +55,7 @@ export class AppComponent {
   cols: number = 6;
   rowHeight: string = "fit";
   height: number = 100;
+  disableRemove: boolean = false;
 
   layout: KtdGridLayout = [
     { id: '0', x: 0, y: 0, w: 3, h: 3 },
@@ -92,13 +94,29 @@ export class AppComponent {
       y: 0,
       w: 2,
       h: 2
-    };
+    }; 
 
     // Important: Don't mutate the array, create new instance. This way notifies the Grid component that the layout has changed.
     this.layout = [
       newLayoutItem,
       ...this.layout
     ];
+  }
+
+  /**
+  * Fired when a mousedown happens on the remove grid item button.
+  * Stops the event from propagating an causing the drag to start.
+  * We don't want to drag when mousedown is fired on remove icon button.
+  */
+  stopEventPropagation(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
+  /** Removes the item from the layout */
+  removeItem(id: string) {
+    // Important: Don't mutate the array. Let Angular know that the layout has changed creating a new reference.
+    this.layout = ktdArrayRemoveItem(this.layout, (item) => item.id === id);
   }
 
   onResetGrid() {
