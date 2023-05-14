@@ -9,7 +9,8 @@ import { ktdTrackById, KtdGridLayout } from '@katoid/angular-grid-layout';
 })
 export class AppComponent {
   title = 'Mobalisator-5000';
-  
+
+  slides = 3;
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef; 
   swiper?: Swiper
@@ -18,13 +19,17 @@ export class AppComponent {
     slidesPerView: 1,
     zoom: true,
     enabled: true,
-    pagination: true,
+    pagination: {
+      clickable: true,
+      dynamicBullets: true,
+    },
     autoHeight: true,
     allowTouchMove: false,
     direction: 'vertical',
     keyboard: {
       enabled: true,
     },
+    observer: true,
   }
 
   keyDown(event: KeyboardEvent) {
@@ -68,6 +73,11 @@ export class AppComponent {
     var newLayout = localStorage.getItem("project"+currentPageIndex);
     console.log("Loading config: "+newLayout);
     this.layout = JSON.parse(newLayout!);
+  }
+
+  onNewSlideClick() {
+    // Add slide to the beginning
+    this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
   }
 
   ngOnInit() {
