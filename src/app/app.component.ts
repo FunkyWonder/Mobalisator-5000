@@ -13,7 +13,7 @@ export class AppComponent {
   slides = 3;
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef; 
-  swiper?: Swiper
+  swiper?: Swiper;
 
   options: SwiperOptions = {
     slidesPerView: 1,
@@ -30,7 +30,7 @@ export class AppComponent {
       enabled: true,
     },
     observer: true,
-  }
+  };
 
   keyDown(event: KeyboardEvent) {
     if(event.key == "arrowup") {
@@ -42,16 +42,10 @@ export class AppComponent {
       this.swiper?.slideNext();
       //Down arrow pressed
     }   
-  }
-
-  disableDrag = false;
-  disableResize = false;
-  disableRemove = false;
-  autoResize = true;
-  preventCollision = false;
+  };
 
   cols: number = 6;
-  rowHeight: number = 100;
+  rowHeight: string = "fit";
 
   layout: KtdGridLayout = [
       {id: '0', x: 0, y: 0, w: 3, h: 3},
@@ -59,7 +53,7 @@ export class AppComponent {
       {id: '2', x: 0, y: 3, w: 3, h: 3, minW: 2, minH: 3},
       {id: '3', x: 3, y: 3, w: 3, h: 3, minW: 2, maxW: 3, minH: 2, maxH: 5},
   ];
-  trackById = ktdTrackById
+  trackById = ktdTrackById;
 
   onLayoutUpdated(event: KtdGridLayout) {
     var newLayout = JSON.stringify(event);
