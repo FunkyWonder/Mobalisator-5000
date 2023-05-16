@@ -3,6 +3,11 @@
     <div class="chart-container" style="width: 800px; height: 600px;">
       <canvas id="test-chart">
       </canvas>
+      <gridster [options]="gridsterOptions">
+        <gridster-item [item]="item" *ngFor="let item of dashboard">
+          <!-- your content here -->
+        </gridster-item>
+      </gridster>
     </div>
   </swiper-slide>
 </swiper-container>

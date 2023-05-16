@@ -1,11 +1,18 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
-import { ktdTrackById, KtdGridLayout, KtdGridLayoutItem } from '@katoid/angular-grid-layout';
-import { ktdArrayRemoveItem } from './utils';
-import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js'
+import {NgForOf} from '@angular/common';
+import { GridsterConfig, GridsterItem, GridsterComponent, GridsterItemComponent, Draggable, Resizable, PushDirections, GridType, CompactType} from 'angular-gridster2';
+import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js';
 
+interface Safe extends GridsterConfig {
+  draggable: Draggable;
+  resizable: Resizable;
+  pushDirections: PushDirections;
+}
 
 @Component({
+  standalone: true,
+  imports: [NgForOf, GridsterComponent, GridsterItemComponent],
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
@@ -22,11 +29,14 @@ export class AppComponent {
     return result;
   };
 
+  options: Safe;
+  dashboard: Array<GridsterItem>;
+
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef;
   swiper?: Swiper;
 
-  options: SwiperOptions = {
+  swiperOptions: SwiperOptions = {
     slidesPerView: 1,
     zoom: true,
     enabled: true,
@@ -61,21 +71,11 @@ export class AppComponent {
     }
   };
 
-  defaultCols: number = 6;
-  defaultRowHeight: string = "fit";
-  defaultHeight: number = 100;
 
-  defaultLayout: KtdGridLayout = [
-    { id: '0', x: 0, y: 0, w: 3, h: 3 }, // id 0 always contains the project title which also serves as the project unique identifier
-    { id: '1', x: 3, y: 0, w: 3, h: 3 },
-    { id: '2', x: 0, y: 3, w: 3, h: 3, minW: 2, minH: 3 },
-    { id: '3', x: 3, y: 3, w: 3, h: 3, minW: 2, maxW: 3, minH: 2, maxH: 5 },
-  ];
-  trackById = ktdTrackById;
 
   getConfig() {
     var currentConfig = localStorage.getItem("project_config");
-    // Generate a default config iåf no config was ever saved before
+    // Generate a default config if no config was ever saved before
     if (currentConfig == null) {
       localStorage.setItem("project_config", "{}");
       return JSON.parse("{}");
@@ -126,28 +126,24 @@ export class AppComponent {
     console.log(currentConfig);
     var slideCount = Object.keys(currentConfig).length;
     // If slideCount has never been saved
-    if (slideCount == null) {
+    if (slideCount == 0) {
       return
     }
 
-    for (let i = 0; i < Number(slideCount); i++) {
-      var hex = currentConfig[slideCount];
-      console.log(currentConfig[slideCount]);
-      console.log(currentConfig["8557715"]);
-      console.log(currentConfig[slideCount]['grid']);
-      var cols = currentConfig[slideCount].grid.cols;
+    for (const key of Object.keys(currentConfig)) {
+      var cols = currentConfig[key].grid.cols;
       if (cols == null) {
         cols = this.defaultCols;
       }
-      var rowHeight = currentConfig[slideCount].grid.rowHeight;
+      var rowHeight = currentConfig[key].grid.rowHeight;
       if (rowHeight == null) {
         rowHeight = this.defaultRowHeight;
       }
-      var height = currentConfig[slideCount].grid.height;
+      var height = currentConfig[key].grid.height;
       if (height == null) {
         height = this.defaultHeight;
       }
-      var layout = currentConfig[slideCount].grid.layout;
+      var layout = currentConfig[key].grid.layout;
       if (layout == null) {
         layout = this.defaultLayout;
       }
@@ -155,8 +151,8 @@ export class AppComponent {
       // TODO: add content back which was located on the slide
       this.swiper?.appendSlide(`
       <swiper-slide>
-      <ktd-grid [cols]="${cols}" [rowHeight]="${rowHeight}" [layout]="${layout}" (layoutUpdated)="onLayoutUpdated($event, ${hex})">
-        <ktd-grid-item *ngFor="let item of ${layout}; trackBy:trackById" [id]="item.id">
+      <ktd-grid [cols]="${cols}" [rowHeight]="${rowHeight}" [layout]="${this.defaultLayout}" (layoutUpdated)="onLayoutUpdated($event, ${key})">
+        <ktd-grid-item *ngFor="let item of ${this.defaultLayout}; trackBy:trackById" [id]="item.id">
           <!-- Your grid item content goes here -->
           <h1>Text</h1>
           <div class="grid-item-remove-handle" *ngIf="!disableRemove" (mousedown)="stopEventPropagation($event)"
@@ -165,7 +161,7 @@ export class AppComponent {
           </div>
         </ktd-grid-item>
       </ktd-grid>
-      <button class="button" (click)="onAddTileClick(${hex})">Add tile</button>
+      <button class="button" (click)="onAddTileClick(${key})">Add tile</button>
       </swiper-slide>`
       );
     }
@@ -267,5 +263,11 @@ export class AppComponent {
     this.swiper = this._swiperRef.nativeElement.swiper
 
     this.createChart()
+
+    this.options = {
+      gridType: GridType.Fit,
+      compactType: CompactType.None,
+      margin: 10,
+    }
   }
 }

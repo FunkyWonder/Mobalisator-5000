@@ -4,7 +4,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { register } from 'swiper/element/bundle';
-import { KtdGridModule } from '@katoid/angular-grid-layout';
+import { GridsterComponent, GridsterModule } from 'angular-gridster2';
+
 
 register();
 
@@ -15,7 +16,7 @@ register();
   imports: [
     BrowserModule,
     AppRoutingModule,
-    KtdGridModule
+    GridsterModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
