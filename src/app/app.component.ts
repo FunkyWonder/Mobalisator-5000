@@ -13,7 +13,15 @@ import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_module
 export class AppComponent {
   title = 'Mobalisator-5000';
 
-  slides = 3;
+  randomHex = (): string => {
+    let result = '';
+    for (let i = 0; i < 7; ++i) {
+      const value = Math.floor(16 * Math.random());
+      result += value.toString(16);
+    }
+    return result;
+  };
+
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef;
   swiper?: Swiper;
@@ -53,48 +61,119 @@ export class AppComponent {
     }
   };
 
-  cols: number = 6;
-  rowHeight: string = "fit";
-  height: number = 100;
-  disableRemove: boolean = false;
+  defaultCols: number = 6;
+  defaultRowHeight: string = "fit";
+  defaultHeight: number = 100;
 
-  layout: KtdGridLayout = [
-    { id: '0', x: 0, y: 0, w: 3, h: 3 },
+  defaultLayout: KtdGridLayout = [
+    { id: '0', x: 0, y: 0, w: 3, h: 3 }, // id 0 always contains the project title which also serves as the project unique identifier
     { id: '1', x: 3, y: 0, w: 3, h: 3 },
     { id: '2', x: 0, y: 3, w: 3, h: 3, minW: 2, minH: 3 },
     { id: '3', x: 3, y: 3, w: 3, h: 3, minW: 2, maxW: 3, minH: 2, maxH: 5 },
   ];
   trackById = ktdTrackById;
 
-  onLayoutUpdated(event: KtdGridLayout) {
-    var newLayout = JSON.stringify(event);
-    var currentPageIndex = this.swiper?.activeIndex;
-    localStorage.setItem("project" + currentPageIndex, newLayout);
-    console.log("Saving layout: " + newLayout + " on page " + currentPageIndex);
+  getConfig() {
+    var currentConfig = localStorage.getItem("project_config");
+    // Generate a default config iåf no config was ever saved before
+    if (currentConfig == null) {
+      localStorage.setItem("project_config", "{}");
+      return JSON.parse("{}");
+    }
+
+    return JSON.parse(currentConfig);
   };
 
-  onRestoreGridClick() {
-    var currentPageIndex = this.swiper?.activeIndex;
-    var newLayout = localStorage.getItem("project" + currentPageIndex);
-    console.log("Loading config: " + newLayout);
-    this.layout = JSON.parse(newLayout!);
+  setConfig(config: Object) {
+    localStorage.setItem("project_config", JSON.stringify(config));
   }
 
+
+  onLayoutUpdated(event: KtdGridLayout, hex: string) {
+    var newLayout = JSON.stringify(event);
+    var currentConfig = this.getConfig();
+
+    currentConfig[hex].grid.layout = newLayout
+  };
+
   onNewSlideClick() {
-    // Add slide to the beginning and save the amount of slides
-    this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
-    localStorage.setItem("project_count", this.swiper!.slides.length.toString());
+    // 1) Add a new project to the global project configuration file
+    // 1.1) Retrieve current config
+    var currentConfig = this.getConfig();
+    // 1.2) Add a new project
+    var hex = this.randomHex();
+    currentConfig[hex] = {};
+    currentConfig[hex].grid = {};
+
+    // 2) Add the slide to the page
+    // TODO: add content back which was located on the slide
+    currentConfig[hex].grid.cols = this.defaultCols;
+    currentConfig[hex].grid.rowHeight = this.defaultRowHeight;
+    currentConfig[hex].grid.height = this.defaultHeight;
+    currentConfig[hex].grid.layout = this.defaultLayout;
+
+    this.setConfig(currentConfig);
+
+    this.restoreSlides();
   }
 
   onRestoreSlidesClick() {
-    var slideCount = Number(localStorage.getItem("project_count"));
-    for (let i = 0; i < slideCount; i++) {
-      this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
+    this.restoreSlides();
+  }
+
+  restoreSlides() {
+    var currentConfig = this.getConfig();
+    console.log(currentConfig);
+    var slideCount = Object.keys(currentConfig).length;
+    // If slideCount has never been saved
+    if (slideCount == null) {
+      return
+    }
+
+    for (let i = 0; i < Number(slideCount); i++) {
+      var hex = currentConfig[slideCount];
+      console.log(currentConfig[slideCount]);
+      console.log(currentConfig["8557715"]);
+      console.log(currentConfig[slideCount]['grid']);
+      var cols = currentConfig[slideCount].grid.cols;
+      if (cols == null) {
+        cols = this.defaultCols;
+      }
+      var rowHeight = currentConfig[slideCount].grid.rowHeight;
+      if (rowHeight == null) {
+        rowHeight = this.defaultRowHeight;
+      }
+      var height = currentConfig[slideCount].grid.height;
+      if (height == null) {
+        height = this.defaultHeight;
+      }
+      var layout = currentConfig[slideCount].grid.layout;
+      if (layout == null) {
+        layout = this.defaultLayout;
+      }
+
+      // TODO: add content back which was located on the slide
+      this.swiper?.appendSlide(`
+      <swiper-slide>
+      <ktd-grid [cols]="${cols}" [rowHeight]="${rowHeight}" [layout]="${layout}" (layoutUpdated)="onLayoutUpdated($event, ${hex})">
+        <ktd-grid-item *ngFor="let item of ${layout}; trackBy:trackById" [id]="item.id">
+          <!-- Your grid item content goes here -->
+          <h1>Text</h1>
+          <div class="grid-item-remove-handle" *ngIf="!disableRemove" (mousedown)="stopEventPropagation($event)"
+            (click)="removeItem(item.id)">
+            <h1>Remove</h1>
+          </div>
+        </ktd-grid-item>
+      </ktd-grid>
+      <button class="button" (click)="onAddTileClick(${hex})">Add tile</button>
+      </swiper-slide>`
+      );
     }
   }
 
-  onAddTileClick() {
-    const maxId = this.layout.reduce((acc, cur) => Math.max(acc, parseInt(cur.id, 10)), -1);
+  onAddTileClick(hex: string) {
+    var currentConfig = this.getConfig();
+    const maxId = currentConfig[hex].grid.layout.reduce((acc: number, cur: { id: string; }) => Math.max(acc, parseInt(cur.id, 10)), -1);
     const nextId = maxId + 1;
 
     const newLayoutItem: KtdGridLayoutItem = {
@@ -106,10 +185,12 @@ export class AppComponent {
     };
 
     // Important: Don't mutate the array, create new instance. This way notifies the Grid component that the layout has changed.
-    this.layout = [
+    currentConfig[hex].grid.layout = [
       newLayoutItem,
-      ...this.layout
+      ...currentConfig[hex].grid.layout
     ];
+    this.setConfig(currentConfig);
+    this.restoreSlides();
   }
 
   /**
@@ -123,19 +204,22 @@ export class AppComponent {
   }
 
   /** Removes the item from the layout */
-  removeItem(id: string) {
+  removeItem(id: string, hex: string) {
+    var currentConfig = this.getConfig();
+
     // Important: Don't mutate the array. Let Angular know that the layout has changed creating a new reference.
-    this.layout = ktdArrayRemoveItem(this.layout, (item) => item.id === id);
+    // TODO: fix this
+    // currentConfig[hex].grid.layout = ktdArrayRemoveItem(currentConfig[hex].grid.layout, (item) => item.id === id);
   }
 
-  onResetGrid() {
-    this.layout = [
-      { id: '0', x: 0, y: 0, w: 3, h: 3 },
-      { id: '1', x: 3, y: 0, w: 3, h: 3 },
-      { id: '2', x: 0, y: 3, w: 3, h: 3, minW: 2, minH: 3 },
-      { id: '3', x: 3, y: 3, w: 3, h: 3, minW: 2, maxW: 3, minH: 2, maxH: 5 },
-    ];
-  }
+  // onResetGrid() {
+  //   this.layout = [
+  //     { id: '0', x: 0, y: 0, w: 3, h: 3 },
+  //     { id: '1', x: 3, y: 0, w: 3, h: 3 },
+  //     { id: '2', x: 0, y: 3, w: 3, h: 3, minW: 2, minH: 3 },
+  //     { id: '3', x: 3, y: 3, w: 3, h: 3, minW: 2, maxW: 3, minH: 2, maxH: 5 },
+  //   ];
+  // }
 
   sidebarVisible: boolean = false;
 

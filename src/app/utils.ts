@@ -11,3 +11,4 @@ export function ktdArrayRemoveItem<T>(array: T[], condition: (item: T) => boolea
     }
     return arrayCopy;
 }
+
