@@ -1,8 +1,8 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
-import {NgForOf} from '@angular/common';
-import { GridsterConfig, GridsterItem, GridsterComponent, GridsterItemComponent, Draggable, Resizable, PushDirections, GridType, CompactType} from 'angular-gridster2';
-import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js';
+import { ktdTrackById, KtdGridLayout, KtdGridLayoutItem } from '@katoid/angular-grid-layout';
+import { ktdArrayRemoveItem } from './utils';
+import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js'
 
 interface Safe extends GridsterConfig {
   draggable: Draggable;
@@ -15,7 +15,7 @@ interface Safe extends GridsterConfig {
   imports: [NgForOf, GridsterComponent, GridsterItemComponent],
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
   title = 'Mobalisator-5000';
@@ -52,6 +52,99 @@ export class AppComponent {
     },
     observer: true,
   };
+  options: GridsterConfig = {};
+  defaultDashboard: Array<GridsterItem> = [
+    { cols: 2, rows: 1, y: 0, x: 0 },
+    { cols: 2, rows: 2, y: 0, x: 2 }
+  ];;
+
+  public getFirstKey(obj: any): string {
+    return Object.keys(obj)[0];
+  }
+
+  getConfig() {
+    var currentConfig = localStorage.getItem("project_config");
+    // Generate a default config iåf no config was ever saved before
+    if (currentConfig == null) {
+      localStorage.setItem("project_config", "{}");
+      return JSON.parse("{}");
+    }
+
+    return JSON.parse(currentConfig);
+  };
+
+  setConfig(config: Object) {
+    localStorage.setItem("project_config", JSON.stringify(config));
+    this.slidesArray = Object.entries(config).map(([key, value]) => ({ [key]: value }));
+    console.log(config);
+  }
+
+  static itemChange(
+    item: GridsterItem,
+    itemComponent: GridsterItemComponentInterface
+  ): void {
+    console.info('itemChanged', item, itemComponent);
+    if (this.ignoreItemModification == false) {
+      console.log("loading grid fom config");
+      const appComponent = new AppComponent();
+      var currentConfig = appComponent.getConfig();
+      var hex = itemComponent.el.id;
+      var items = [];
+      for (let item in itemComponent.gridster.grid) { // Extract all items from the itemComponents grid
+        items.push(itemComponent.gridster.grid[item].item);
+      }
+      currentConfig[hex].grid.layout = items;
+      appComponent.setConfig(currentConfig);
+
+      this.ignoreItemModification = true;
+      setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
+
+    }
+  }
+
+  static itemResize(
+    item: GridsterItem,
+    itemComponent: GridsterItemComponentInterface
+  ): void {
+    //console.info('itemResized', item, itemComponent);
+  }
+
+  static itemInit(
+    item: GridsterItem,
+    itemComponent: GridsterItemComponentInterface
+  ): void {
+    //console.info('itemInitialized', item, itemComponent);
+  }
+
+  static itemRemoved(
+    item: GridsterItem,
+    itemComponent: GridsterItemComponentInterface,
+  ): void {
+    //console.info('itemRemoved', item, itemComponent);
+  }
+
+  static itemValidate(item: GridsterItem): boolean {
+    return item.cols > 0 && item.rows > 0;
+  }
+
+  static ignoreItemModification: Boolean = false;
+
+  static gridInit(grid: GridsterComponentInterface): void {
+    console.info('gridInit', grid);
+    // set a timer which is used to make sure that when items get resized it doesn't craete a infinite loop
+    // if an item is resized within one second of initializing the grid, ignore the changes
+    this.ignoreItemModification = true;
+    console.log("ignoring item modificaiton");
+    setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
+  }
+
+  static gridDestroy(grid: GridsterComponentInterface): void {
+    //console.info('gridDestroy', grid);
+  }
+
+  static gridSizeChanged(grid: GridsterComponentInterface): void {
+    //console.info('gridSizeChanged', grid);
+  }
 
   @HostListener('document:keypress', ['$event'])
   keyDown(event: KeyboardEvent) {
@@ -71,22 +164,10 @@ export class AppComponent {
     }
   };
 
-
-
-  getConfig() {
-    var currentConfig = localStorage.getItem("project_config");
-    // Generate a default config if no config was ever saved before
-    if (currentConfig == null) {
-      localStorage.setItem("project_config", "{}");
-      return JSON.parse("{}");
-    }
-
-    return JSON.parse(currentConfig);
-  };
-
-  setConfig(config: Object) {
-    localStorage.setItem("project_config", JSON.stringify(config));
-  }
+  cols: number = 6;
+  rowHeight: string = "fit";
+  height: number = 100;
+  disableRemove: boolean = false;
 
 
   onLayoutUpdated(event: KtdGridLayout, hex: string) {
@@ -97,79 +178,20 @@ export class AppComponent {
   };
 
   onNewSlideClick() {
-    // 1) Add a new project to the global project configuration file
-    // 1.1) Retrieve current config
-    var currentConfig = this.getConfig();
-    // 1.2) Add a new project
-    var hex = this.randomHex();
-    currentConfig[hex] = {};
-    currentConfig[hex].grid = {};
-
-    // 2) Add the slide to the page
-    // TODO: add content back which was located on the slide
-    currentConfig[hex].grid.cols = this.defaultCols;
-    currentConfig[hex].grid.rowHeight = this.defaultRowHeight;
-    currentConfig[hex].grid.height = this.defaultHeight;
-    currentConfig[hex].grid.layout = this.defaultLayout;
-
-    this.setConfig(currentConfig);
-
-    this.restoreSlides();
+    // Add slide to the beginning and save the amount of slides
+    this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
+    localStorage.setItem("project_count", this.swiper!.slides.length.toString());
   }
 
   onRestoreSlidesClick() {
-    this.restoreSlides();
-  }
-
-  restoreSlides() {
-    var currentConfig = this.getConfig();
-    console.log(currentConfig);
-    var slideCount = Object.keys(currentConfig).length;
-    // If slideCount has never been saved
-    if (slideCount == 0) {
-      return
-    }
-
-    for (const key of Object.keys(currentConfig)) {
-      var cols = currentConfig[key].grid.cols;
-      if (cols == null) {
-        cols = this.defaultCols;
-      }
-      var rowHeight = currentConfig[key].grid.rowHeight;
-      if (rowHeight == null) {
-        rowHeight = this.defaultRowHeight;
-      }
-      var height = currentConfig[key].grid.height;
-      if (height == null) {
-        height = this.defaultHeight;
-      }
-      var layout = currentConfig[key].grid.layout;
-      if (layout == null) {
-        layout = this.defaultLayout;
-      }
-
-      // TODO: add content back which was located on the slide
-      this.swiper?.appendSlide(`
-      <swiper-slide>
-      <ktd-grid [cols]="${cols}" [rowHeight]="${rowHeight}" [layout]="${this.defaultLayout}" (layoutUpdated)="onLayoutUpdated($event, ${key})">
-        <ktd-grid-item *ngFor="let item of ${this.defaultLayout}; trackBy:trackById" [id]="item.id">
-          <!-- Your grid item content goes here -->
-          <h1>Text</h1>
-          <div class="grid-item-remove-handle" *ngIf="!disableRemove" (mousedown)="stopEventPropagation($event)"
-            (click)="removeItem(item.id)">
-            <h1>Remove</h1>
-          </div>
-        </ktd-grid-item>
-      </ktd-grid>
-      <button class="button" (click)="onAddTileClick(${key})">Add tile</button>
-      </swiper-slide>`
-      );
+    var slideCount = Number(localStorage.getItem("project_count"));
+    for (let i = 0; i < slideCount; i++) {
+      this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
     }
   }
 
-  onAddTileClick(hex: string) {
-    var currentConfig = this.getConfig();
-    const maxId = currentConfig[hex].grid.layout.reduce((acc: number, cur: { id: string; }) => Math.max(acc, parseInt(cur.id, 10)), -1);
+  onAddTileClick() {
+    const maxId = this.layout.reduce((acc, cur) => Math.max(acc, parseInt(cur.id, 10)), -1);
     const nextId = maxId + 1;
 
     const newLayoutItem: KtdGridLayoutItem = {
@@ -189,15 +211,12 @@ export class AppComponent {
     this.restoreSlides();
   }
 
-  /**
-  * Fired when a mousedown happens on the remove grid item button.
-  * Stops the event from propagating an causing the drag to start.
-  * We don't want to drag when mousedown is fired on remove icon button.
-  */
-  stopEventPropagation(event: Event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
+  // used in the html to get the grid layout in correct form
+  public getGridsterLayout(slide: string): GridsterItem[] {
+    console.log(slide);
+    console.log(this.getConfig()[slide]);
+    console.log(this.getConfig()[slide]['grid']);
+    console.log(this.getConfig()[slide]['grid']['layout']);
 
   /** Removes the item from the layout */
   removeItem(id: string, hex: string) {
@@ -223,51 +242,17 @@ export class AppComponent {
     this.sidebarVisible = !this.sidebarVisible;
   }
 
-  // TODO: this needs clean up
-  createChart(): void {
-    Chart.register(...registerables);
-
-    const data = {
-      labels: ['January', 'February', 'March', 'April', 'May'],
-      datasets: [{
-        label: 'My First dataset',
-        backgroundColor: 'rgb(255, 99, 132)',
-        borderColor: 'rgb(255, 99, 132)',
-        data: [10, 5, 2, 20, 30, 45],
-      }]
-    };
-    const options = {
-      scales: {
-        y: {
-          beginAtZero: true,
-          display: false
-        }
-      }
-    }
-    const config: ChartConfiguration = {
-      type: 'line',
-      data: data,
-      options: options
-    }
-    const chartItem: ChartItem = document.getElementById('test-chart') as ChartItem;
-
-    new Chart(chartItem, config);
-  }
+  slidesArray = Object.entries(this.getConfig()).map(([key, value]) => ({ [key]: value }));
 
   ngOnInit() {
     const swiperEl = this._swiperRef.nativeElement
-    Object.assign(swiperEl, this.options)
+    Object.assign(swiperEl, this.swiperOptions)
 
     swiperEl.initialize()
 
     this.swiper = this._swiperRef.nativeElement.swiper
 
     this.createChart()
-
-    this.options = {
-      gridType: GridType.Fit,
-      compactType: CompactType.None,
-      margin: 10,
-    }
   }
 }
+
