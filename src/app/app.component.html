@@ -1,21 +1,23 @@
 <swiper-container class="swiper" #swiperRef init="false">
+  <swiper-slide *ngFor="let slide of slidesArray as array">
+    <gridster class="gridster" [options]="options">
+      <gridster-item [item]="item" [id]="getFirstKey(slide)" *ngFor="let item of getGridsterLayout(getFirstKey(slide))">
+        <!-- your content here -->
+      </gridster-item>
+    </gridster>
+  </swiper-slide>
   <swiper-slide>
     <div class="chart-container" style="width: 800px; height: 600px;">
       <canvas id="test-chart">
       </canvas>
-      <gridster [options]="gridsterOptions">
-        <gridster-item [item]="item" *ngFor="let item of dashboard">
-          <!-- your content here -->
-        </gridster-item>
-      </gridster>
     </div>
   </swiper-slide>
 </swiper-container>
 
 <div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
   <!-- <button class="button" (click)="onResetGrid()">Reset grid</button> -->
-  <button class="button" (click)="onNewSlideClick()">New Slide</button>
-  <button class="button" (click)="onRestoreSlidesClick()">Restore Slides</button>
+  <button class="button" (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
+  <button class="button" (click)="onClearConfig()">Clear Config</button>
 </div>
 
 <style>
@@ -23,11 +25,11 @@
     height: 100vh;
   }
 
-  ktd-grid {
+  .gridster, swiper-slide {
     height: 100%;
   }
 
-  ktd-grid-item {
+  gridster-item {
     background-color: blue;
     border: 10px solid red;
     box-sizing: border-box;
