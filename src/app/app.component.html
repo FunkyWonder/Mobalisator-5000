@@ -3,7 +3,7 @@
     <gridster class="gridster" [options]="options">
       <gridster-item [item]="item" [id]="slide.hex" *ngFor="let item of slide.grid.layout">
         <!-- your content here -->
-        <button class="button" (click)="onRemoveTile(slide.hex, item['id'])">delete</button>
+        <button class="delete-button" (click)="onRemoveTile(slide.hex, item['id'])"><ng-icon name="heroTrash"></ng-icon></button>
       </gridster-item>
     </gridster>
   </swiper-slide>
@@ -34,7 +34,7 @@
  
   gridster-item {
     background-color: blue;
-    border: 10px solid red;
+    border: 2px solid red;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -48,6 +48,21 @@
   .button {
     width: 5rem;
     height: 5rem;
+  }
+
+  .delete-button {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background-color: green;
+    border-radius: 100%;
+    aspect-ratio: 1/1;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 100ms;
+  }
+  gridster-item:hover .delete-button {
+    opacity: 1;
   }
 
   .openSidebar {
