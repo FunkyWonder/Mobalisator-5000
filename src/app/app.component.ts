@@ -3,6 +3,9 @@ import Swiper, { SwiperOptions } from 'swiper';
 import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js'
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent}  from 'angular-gridster2';
 
+export interface slide {
+  [key: string]: any
+}
 
 @Component({
   selector: 'app-root',
@@ -53,7 +56,7 @@ export class AppComponent {
 
   getConfig() {
     var currentConfig = localStorage.getItem("project_config");
-    // Generate a default config iåf no config was ever saved before
+    // Generate a default config if no config was ever saved before
     if (currentConfig == null) {
       localStorage.setItem("project_config", "{}");
       return JSON.parse("{}");
@@ -82,6 +85,8 @@ export class AppComponent {
     }
     currentConfig[hex].grid.layout = items;
     appComponent.setConfig(currentConfig);
+
+    console.log(item["id"]);
   }
 
   static itemResize(
@@ -158,6 +163,42 @@ export class AppComponent {
 
     // 2) Add the slide to the page, the page automatically updates
     this.setConfig(currentConfig);
+  }
+
+  onAddItemToTile(slideId: string) {
+    
+  }
+
+  onRemoveTile(slideId: string, tileId: string) {
+    var currentConfig = this.getConfig();
+
+    var tiles = currentConfig[slideId]['grid']['layout'];
+
+    // Loop through tiles to select the one with tileId
+    for (let tile in tiles) {
+      if (tiles[tile]['id'] == tileId) {
+        tiles.splice(Number(tile), 1);
+      }
+    }
+    currentConfig[slideId]['grid']['layout'] = tiles;
+    this.setConfig(currentConfig);
+  }
+
+  onAddTile() {
+    var slideNumber = Number(this.swiper?.activeIndex);
+    console.log(slideNumber);
+
+    var currentConfig = this.getConfig();
+
+    // var currentSlide : slide = Object.values(currentConfig)[slideNumber] as slide;
+    var currentSlideHex : string = Object.keys(currentConfig)[slideNumber];
+
+    // currentSlide['grid']['layout'].push(`{ cols: 1, rows: 1, y: 0, x: 0, id: ${ this.randomHex() }`);
+    console.log(this.slidesArray);
+    this.slidesArray[slideNumber][currentSlideHex]['grid']['layout'].push(`{ cols: 1, rows: 1, y: 0, x: 0, id: ${ this.randomHex() }`);
+    // currentConfig[currentSlideHex] = currentSlide;
+
+    // this.setConfig(currentConfig);
   }
 
   onClearConfig(){

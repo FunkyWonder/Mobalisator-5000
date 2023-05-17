@@ -3,6 +3,7 @@
     <gridster class="gridster" [options]="options">
       <gridster-item [item]="item" [id]="getFirstKey(slide)" *ngFor="let item of getGridsterLayout(getFirstKey(slide))">
         <!-- your content here -->
+        <button class="button" (click)="onRemoveTile(getFirstKey(slide), item['id'])">delete</button>
       </gridster-item>
     </gridster>
   </swiper-slide>
@@ -18,6 +19,8 @@
   <!-- <button class="button" (click)="onResetGrid()">Reset grid</button> -->
   <button class="button" (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
   <button class="button" (click)="onClearConfig()">Clear Config</button>
+  <button class="button" (click)="onAddTile()">Add tile</button>
+
 </div>
 
 <style>
@@ -28,13 +31,14 @@
   .gridster, swiper-slide {
     height: 100%;
   }
-
+ 
   gridster-item {
     background-color: blue;
     border: 10px solid red;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    border-radius: 8px;
   }
 
   .grid-item-remove-handle {
