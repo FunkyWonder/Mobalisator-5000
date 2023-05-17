@@ -1,18 +1,10 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
-import { ktdTrackById, KtdGridLayout, KtdGridLayoutItem } from '@katoid/angular-grid-layout';
-import { ktdArrayRemoveItem } from './utils';
 import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js'
+import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent}  from 'angular-gridster2';
 
-interface Safe extends GridsterConfig {
-  draggable: Draggable;
-  resizable: Resizable;
-  pushDirections: PushDirections;
-}
 
 @Component({
-  standalone: true,
-  imports: [NgForOf, GridsterComponent, GridsterItemComponent],
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -28,9 +20,6 @@ export class AppComponent {
     }
     return result;
   };
-
-  options: Safe;
-  dashboard: Array<GridsterItem>;
 
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef;
@@ -69,7 +58,7 @@ export class AppComponent {
       localStorage.setItem("project_config", "{}");
       return JSON.parse("{}");
     }
-
+    console.log(currentConfig);
     return JSON.parse(currentConfig);
   };
 
@@ -86,18 +75,18 @@ export class AppComponent {
     console.info('itemChanged', item, itemComponent);
     if (this.ignoreItemModification == false) {
       console.log("loading grid fom config");
-      const appComponent = new AppComponent();
-      var currentConfig = appComponent.getConfig();
-      var hex = itemComponent.el.id;
-      var items = [];
-      for (let item in itemComponent.gridster.grid) { // Extract all items from the itemComponents grid
-        items.push(itemComponent.gridster.grid[item].item);
-      }
-      currentConfig[hex].grid.layout = items;
-      appComponent.setConfig(currentConfig);
+      // const appComponent = new AppComponent();
+      // var currentConfig = appComponent.getConfig();
+      // var hex = itemComponent.el.id;
+      // var items = [];
+      // for (let item in itemComponent.gridster.grid) { // Extract all items from the itemComponents grid
+      //   items.push(itemComponent.gridster.grid[item].item);
+      // }
+      // currentConfig[hex].grid.layout = items;
+      // appComponent.setConfig(currentConfig);
 
-      this.ignoreItemModification = true;
-      setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
+      // this.ignoreItemModification = true;
+      // setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
 
     }
   }
@@ -164,77 +153,28 @@ export class AppComponent {
     }
   };
 
-  cols: number = 6;
-  rowHeight: string = "fit";
-  height: number = 100;
-  disableRemove: boolean = false;
-
-
-  onLayoutUpdated(event: KtdGridLayout, hex: string) {
-    var newLayout = JSON.stringify(event);
-    var currentConfig = this.getConfig();
-
-    currentConfig[hex].grid.layout = newLayout
-  };
-
   onNewSlideClick() {
-    // Add slide to the beginning and save the amount of slides
-    this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
-    localStorage.setItem("project_count", this.swiper!.slides.length.toString());
-  }
+    // 1) Add a new project to the global project configuration file
+    // 1.1) Retrieve current config
+    var currentConfig = this.getConfig();
+    // 1.2) Add a new project
+    var hex = this.randomHex();
+    currentConfig[hex] = {};
+    currentConfig[hex].grid = {};
+    currentConfig[hex].grid.layout = this.defaultDashboard;
 
-  onRestoreSlidesClick() {
-    var slideCount = Number(localStorage.getItem("project_count"));
-    for (let i = 0; i < slideCount; i++) {
-      this.swiper?.appendSlide("<swiper-slide><h1>slide</h1></swiper-slide>");
-    }
-  }
-
-  onAddTileClick() {
-    const maxId = this.layout.reduce((acc, cur) => Math.max(acc, parseInt(cur.id, 10)), -1);
-    const nextId = maxId + 1;
-
-    const newLayoutItem: KtdGridLayoutItem = {
-      id: nextId.toString(),
-      x: 0,
-      y: 0,
-      w: 2,
-      h: 2
-    };
-
-    // Important: Don't mutate the array, create new instance. This way notifies the Grid component that the layout has changed.
-    currentConfig[hex].grid.layout = [
-      newLayoutItem,
-      ...currentConfig[hex].grid.layout
-    ];
+    // 2) Add the slide to the page, the page automatically updates
     this.setConfig(currentConfig);
-    this.restoreSlides();
+  }
+
+  onClearConfig(){
+    this.setConfig({});
   }
 
   // used in the html to get the grid layout in correct form
   public getGridsterLayout(slide: string): GridsterItem[] {
-    console.log(slide);
-    console.log(this.getConfig()[slide]);
-    console.log(this.getConfig()[slide]['grid']);
-    console.log(this.getConfig()[slide]['grid']['layout']);
-
-  /** Removes the item from the layout */
-  removeItem(id: string, hex: string) {
-    var currentConfig = this.getConfig();
-
-    // Important: Don't mutate the array. Let Angular know that the layout has changed creating a new reference.
-    // TODO: fix this
-    // currentConfig[hex].grid.layout = ktdArrayRemoveItem(currentConfig[hex].grid.layout, (item) => item.id === id);
+    return this.getConfig()[slide]['grid']['layout'] as Array<GridsterItem>;
   }
-
-  // onResetGrid() {
-  //   this.layout = [
-  //     { id: '0', x: 0, y: 0, w: 3, h: 3 },
-  //     { id: '1', x: 3, y: 0, w: 3, h: 3 },
-  //     { id: '2', x: 0, y: 3, w: 3, h: 3, minW: 2, minH: 3 },
-  //     { id: '3', x: 3, y: 3, w: 3, h: 3, minW: 2, maxW: 3, minH: 2, maxH: 5 },
-  //   ];
-  // }
 
   sidebarVisible: boolean = false;
 
@@ -252,7 +192,74 @@ export class AppComponent {
 
     this.swiper = this._swiperRef.nativeElement.swiper
 
-    this.createChart()
+    this.options = {
+      gridType: GridType.Fit,
+      compactType: CompactType.None,
+      initCallback: AppComponent.gridInit,
+      destroyCallback: AppComponent.gridDestroy,
+      gridSizeChangedCallback: AppComponent.gridSizeChanged,
+      itemChangeCallback: AppComponent.itemChange,
+      itemResizeCallback: AppComponent.itemResize,
+      itemInitCallback: AppComponent.itemInit,
+      itemRemovedCallback: AppComponent.itemRemoved,
+      itemValidateCallback: AppComponent.itemValidate,
+      margin: 10,
+      outerMargin: true,
+      outerMarginTop: null,
+      outerMarginRight: null,
+      outerMarginBottom: null,
+      outerMarginLeft: null,
+      useTransformPositioning: true,
+      mobileBreakpoint: 640,
+      useBodyForBreakpoint: false,
+      minCols: 1,
+      maxCols: 100,
+      minRows: 1,
+      maxRows: 100,
+      maxItemCols: 100,
+      minItemCols: 1,
+      maxItemRows: 100,
+      minItemRows: 1,
+      maxItemArea: 2500,
+      minItemArea: 1,
+      defaultItemCols: 1,
+      defaultItemRows: 1,
+      fixedColWidth: 105,
+      fixedRowHeight: 105,
+      keepFixedHeightInMobile: false,
+      keepFixedWidthInMobile: false,
+      scrollSensitivity: 10,
+      scrollSpeed: 20,
+      enableEmptyCellClick: false,
+      enableEmptyCellContextMenu: false,
+      enableEmptyCellDrop: false,
+      enableEmptyCellDrag: false,
+      enableOccupiedCellDrop: false,
+      emptyCellDragMaxCols: 50,
+      emptyCellDragMaxRows: 50,
+      ignoreMarginInRow: false,
+      draggable: {
+        enabled: true
+      },
+      resizable: {
+        enabled: true
+      },
+      swap: false,
+      pushItems: true,
+      disablePushOnDrag: false,
+      disablePushOnResize: false,
+      pushDirections: { north: true, east: true, south: true, west: true },
+      pushResizeItems: false,
+      displayGrid: DisplayGrid.Always,
+      disableWindowResize: false,
+      disableWarnings: false,
+      scrollToNewItems: false
+    };
+
+  }
+  ngAfterViewChecked() {
+    // Update swiper after running ngfor so that the loaded pages appear
+    this.swiper?.update()
   }
 }
 
