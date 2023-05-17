@@ -61,12 +61,10 @@ export class AppComponent {
       this.setConfig([]);
       return [];
     }
-    console.log(currentConfig);
     return JSON.parse(currentConfig);
   };
 
   setConfig(config: Array<any>) {
-    console.log(config);
     localStorage.setItem("project_config", JSON.stringify(config));
   }
 
@@ -118,7 +116,6 @@ export class AppComponent {
 
   gridInit(grid: GridsterComponentInterface): void {
     console.info('gridInit', grid);
-    console.log(this.slidesArray)
   }
 
   gridDestroy(grid: GridsterComponentInterface): void {
