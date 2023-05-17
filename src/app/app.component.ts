@@ -43,8 +43,8 @@ export class AppComponent {
   };
   options: GridsterConfig = {};
   defaultDashboard: Array<GridsterItem> = [
-    { cols: 2, rows: 1, y: 0, x: 0 },
-    { cols: 2, rows: 2, y: 0, x: 2 }
+    { cols: 2, rows: 1, y: 0, x: 0, id: this.randomHex() },
+    { cols: 2, rows: 2, y: 0, x: 2, id: this.randomHex() }
   ];;
 
   public getFirstKey(obj: any): string {
@@ -73,22 +73,15 @@ export class AppComponent {
     itemComponent: GridsterItemComponentInterface
   ): void {
     console.info('itemChanged', item, itemComponent);
-    if (this.ignoreItemModification == false) {
-      console.log("loading grid fom config");
-      // const appComponent = new AppComponent();
-      // var currentConfig = appComponent.getConfig();
-      // var hex = itemComponent.el.id;
-      // var items = [];
-      // for (let item in itemComponent.gridster.grid) { // Extract all items from the itemComponents grid
-      //   items.push(itemComponent.gridster.grid[item].item);
-      // }
-      // currentConfig[hex].grid.layout = items;
-      // appComponent.setConfig(currentConfig);
-
-      // this.ignoreItemModification = true;
-      // setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
-
+    const appComponent = new AppComponent();
+    var currentConfig = appComponent.getConfig();
+    var hex = itemComponent.el.id;
+    var items = [];
+    for (let item in itemComponent.gridster.grid) { // Extract all items from the itemComponents grid
+      items.push(itemComponent.gridster.grid[item].item);
     }
+    currentConfig[hex].grid.layout = items;
+    appComponent.setConfig(currentConfig);
   }
 
   static itemResize(
@@ -122,9 +115,9 @@ export class AppComponent {
     console.info('gridInit', grid);
     // set a timer which is used to make sure that when items get resized it doesn't craete a infinite loop
     // if an item is resized within one second of initializing the grid, ignore the changes
-    this.ignoreItemModification = true;
-    console.log("ignoring item modificaiton");
-    setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
+    //this.ignoreItemModification = true;
+    //console.log("ignoring item modificaiton");
+    //setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
   }
 
   static gridDestroy(grid: GridsterComponentInterface): void {
@@ -173,7 +166,7 @@ export class AppComponent {
 
   // used in the html to get the grid layout in correct form
   public getGridsterLayout(slide: string): GridsterItem[] {
-    return this.getConfig()[slide]['grid']['layout'] as Array<GridsterItem>;
+    return this.slidesDictionary[slide]['grid']['layout'] as Array<GridsterItem>;
   }
 
   sidebarVisible: boolean = false;
@@ -182,7 +175,9 @@ export class AppComponent {
     this.sidebarVisible = !this.sidebarVisible;
   }
 
-  slidesArray = Object.entries(this.getConfig()).map(([key, value]) => ({ [key]: value }));
+  slidesArray: any[] = [];
+
+  slidesDictionary = this.getConfig();
 
   ngOnInit() {
     const swiperEl = this._swiperRef.nativeElement
@@ -256,6 +251,7 @@ export class AppComponent {
       scrollToNewItems: false
     };
 
+    this.slidesArray = Object.entries(this.getConfig()).map(([key, value]) => ({ [key]: value }));
   }
   ngAfterViewChecked() {
     // Update swiper after running ngfor so that the loaded pages appear
