@@ -3,12 +3,17 @@
  * @param array source array to be returned without the element to remove
  * @param condition function that will return true for the item that we want to remove
  */
-export function ktdArrayRemoveItem<T>(array: T[], condition: (item: T) => boolean) {
-    const arrayCopy = [...array];
-    const index = array.findIndex((item) => condition(item));
-    if (index > -1) {
-        arrayCopy.splice(index, 1);
+export function randomHex() : string {
+    let result = '';
+    for (let i = 0; i < 7; ++i) {
+      const value = Math.floor(16 * Math.random());
+      result += value.toString(16);
     }
-    return arrayCopy;
+    return result;
 }
+
+export function getFirstKey(obj: any): string {
+    return Object.keys(obj)[0];
+}
+
 

@@ -1,10 +1,14 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
 import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js'
-import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent}  from 'angular-gridster2';
+import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
+import { randomHex, getFirstKey } from './utils';
 
 export interface slide {
-  [key: string]: any
+  hex: string;
+  grid: {
+    layout: Array<GridsterItem>
+  }
 }
 
 @Component({
@@ -13,16 +17,13 @@ export interface slide {
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  title = 'Mobalisator-5000';
+  constructor() {
+    // Bind the method to the current instance of AppComponent
+    this.onNewSlideClick = this.onNewSlideClick.bind(this);
+    this.itemChange = this.itemChange.bind(this);
+  }
 
-  randomHex = (): string => {
-    let result = '';
-    for (let i = 0; i < 7; ++i) {
-      const value = Math.floor(16 * Math.random());
-      result += value.toString(16);
-    }
-    return result;
-  };
+  title = 'Mobalisator-5000';
 
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef;
@@ -46,91 +47,86 @@ export class AppComponent {
   };
   options: GridsterConfig = {};
   defaultDashboard: Array<GridsterItem> = [
-    { cols: 2, rows: 1, y: 0, x: 0, id: this.randomHex() },
-    { cols: 2, rows: 2, y: 0, x: 2, id: this.randomHex() }
+    { cols: 2, rows: 1, y: 0, x: 0, id: randomHex() },
+    { cols: 2, rows: 2, y: 0, x: 2, id: randomHex() }
   ];;
 
-  public getFirstKey(obj: any): string {
-    return Object.keys(obj)[0];
-  }
+  // Save the function form utils here so that the app.component.html file can use it
+  getFirstKey = getFirstKey;
 
   getConfig() {
     var currentConfig = localStorage.getItem("project_config");
     // Generate a default config if no config was ever saved before
     if (currentConfig == null) {
-      localStorage.setItem("project_config", "{}");
-      return JSON.parse("{}");
+      this.setConfig([]);
+      return [];
     }
     console.log(currentConfig);
     return JSON.parse(currentConfig);
   };
 
-  setConfig(config: Object) {
-    localStorage.setItem("project_config", JSON.stringify(config));
-    this.slidesArray = Object.entries(config).map(([key, value]) => ({ [key]: value }));
+  setConfig(config: Array<any>) {
     console.log(config);
+    localStorage.setItem("project_config", JSON.stringify(config));
   }
 
-  static itemChange(
+  itemChange(
     item: GridsterItem,
     itemComponent: GridsterItemComponentInterface
   ): void {
     console.info('itemChanged', item, itemComponent);
-    const appComponent = new AppComponent();
-    var currentConfig = appComponent.getConfig();
+
     var hex = itemComponent.el.id;
     var items = [];
-    for (let item in itemComponent.gridster.grid) { // Extract all items from the itemComponents grid
+    for (let item in itemComponent.gridster.grid) { // Extract all the gridsterItemss from the itemComponents grid
       items.push(itemComponent.gridster.grid[item].item);
     }
-    currentConfig[hex].grid.layout = items;
-    appComponent.setConfig(currentConfig);
 
-    console.log(item["id"]);
+    for (let slide in this.slidesArray) {
+      if (this.slidesArray[slide].hex != hex) {
+        return;
+      }
+      this.slidesArray[slide].grid.layout = items;
+    }
+    this.setConfig(this.slidesArray);
   }
 
-  static itemResize(
+  itemResize(
     item: GridsterItem,
     itemComponent: GridsterItemComponentInterface
   ): void {
     //console.info('itemResized', item, itemComponent);
   }
 
-  static itemInit(
+  itemInit(
     item: GridsterItem,
     itemComponent: GridsterItemComponentInterface
   ): void {
     //console.info('itemInitialized', item, itemComponent);
   }
 
-  static itemRemoved(
+  itemRemoved(
     item: GridsterItem,
     itemComponent: GridsterItemComponentInterface,
   ): void {
     //console.info('itemRemoved', item, itemComponent);
   }
 
-  static itemValidate(item: GridsterItem): boolean {
+  itemValidate(item: GridsterItem): boolean {
     return item.cols > 0 && item.rows > 0;
   }
 
-  static ignoreItemModification: Boolean = false;
-
-  static gridInit(grid: GridsterComponentInterface): void {
+  gridInit(grid: GridsterComponentInterface): void {
     console.info('gridInit', grid);
-    // set a timer which is used to make sure that when items get resized it doesn't craete a infinite loop
-    // if an item is resized within one second of initializing the grid, ignore the changes
-    //this.ignoreItemModification = true;
-    //console.log("ignoring item modificaiton");
-    //setTimeout(() => {this.ignoreItemModification = false;}, 10000); // delay for one second
+    console.log(this.slidesArray)
   }
 
-  static gridDestroy(grid: GridsterComponentInterface): void {
-    //console.info('gridDestroy', grid);
+  gridDestroy(grid: GridsterComponentInterface): void {
+    console.info('gridDestroy', grid);
   }
 
-  static gridSizeChanged(grid: GridsterComponentInterface): void {
-    //console.info('gridSizeChanged', grid);
+  gridSizeChanged(grid: GridsterComponentInterface): void {
+    console.info('gridSizeChanged', grid);
   }
 
   @HostListener('document:keypress', ['$event'])
@@ -152,62 +148,71 @@ export class AppComponent {
   };
 
   onNewSlideClick() {
-    // 1) Add a new project to the global project configuration file
-    // 1.1) Retrieve current config
-    var currentConfig = this.getConfig();
-    // 1.2) Add a new project
-    var hex = this.randomHex();
-    currentConfig[hex] = {};
-    currentConfig[hex].grid = {};
-    currentConfig[hex].grid.layout = this.defaultDashboard;
-
-    // 2) Add the slide to the page, the page automatically updates
-    this.setConfig(currentConfig);
+    var newHex = randomHex();
+    this.slidesArray.push({hex: newHex, grid: {layout: this.defaultDashboard}})
+    this.setConfig(this.slidesArray);
   }
 
   onAddItemToTile(slideId: string) {
-    
   }
 
   onRemoveTile(slideId: string, tileId: string) {
-    var currentConfig = this.getConfig();
-
-    var tiles = currentConfig[slideId]['grid']['layout'];
-
-    // Loop through tiles to select the one with tileId
-    for (let tile in tiles) {
-      if (tiles[tile]['id'] == tileId) {
-        tiles.splice(Number(tile), 1);
+    // Get the correct slide using the slideId
+    for (let slide in this.slidesArray) {
+      if (this.slidesArray[slide].hex != slideId) {
+        return;
       }
+      var tiles: Array<GridsterItem> = this.slidesArray[slide].grid.layout;
+      // Loop through tiles to select the one with tileId
+      for (let tile in tiles as Array<GridsterItem>) {
+        if (tiles[tile]['id'] == tileId) {
+          // Remove the tile
+          tiles.splice(Number(tile), 1);
+          // Break out of the loop
+          break;
+        }
+      }
+      // Break out of the loop
+      break;
     }
-    currentConfig[slideId]['grid']['layout'] = tiles;
-    this.setConfig(currentConfig);
+    this.setConfig(this.slidesArray);
   }
 
   onAddTile() {
-    var slideNumber = Number(this.swiper?.activeIndex);
-    console.log(slideNumber);
+    var slideNumber: number = this.swiper?.activeIndex as number;
 
-    var currentConfig = this.getConfig();
+    var slideId: string = this.slidesArray[slideNumber].hex;
 
-    // var currentSlide : slide = Object.values(currentConfig)[slideNumber] as slide;
-    var currentSlideHex : string = Object.keys(currentConfig)[slideNumber];
+    // Of all the current Gridster items get the coordinates of where it is safe to add a new tile
+    
+    // Get current slide
+    for (let slide in this.slidesArray) {
+      if (this.slidesArray[slide].hex != slideId) {
+        return;
+      }
+      // Current slide found
 
-    // currentSlide['grid']['layout'].push(`{ cols: 1, rows: 1, y: 0, x: 0, id: ${ this.randomHex() }`);
-    console.log(this.slidesArray);
-    this.slidesArray[slideNumber][currentSlideHex]['grid']['layout'].push(`{ cols: 1, rows: 1, y: 0, x: 0, id: ${ this.randomHex() }`);
-    // currentConfig[currentSlideHex] = currentSlide;
+      // Iterate over all slides and get the max x and y and add one to them to get the new position of the tile
+      var maxX: number = 0;
+      var maxY: number = 0;
+      var tiles: Array<GridsterItem> = this.slidesArray[slide].grid.layout;
+      for (let tile in tiles) {
+        if (tiles[tile].x + tiles[tile].cols > maxX) { // Add the width to the position to get the total width
+          maxX = tiles[tile].x;
+        } 
+        if (tiles[tile].y + tiles[tile].rows > maxY) { // Add the height to the position to get the total height
+          maxY = tiles[tile].y;
+        } 
+      }
 
-    // this.setConfig(currentConfig);
+      this.slidesArray[slideNumber].grid.layout.push({ cols: 1, rows: 1, y: maxY+1, x: maxX+1, id: randomHex()});
+      break;
+    }    
+    this.setConfig(this.slidesArray);
   }
 
-  onClearConfig(){
-    this.setConfig({});
-  }
-
-  // used in the html to get the grid layout in correct form
-  public getGridsterLayout(slide: string): GridsterItem[] {
-    return this.slidesDictionary[slide]['grid']['layout'] as Array<GridsterItem>;
+  onClearConfig() {
+    this.setConfig([]);
   }
 
   sidebarVisible: boolean = false;
@@ -216,9 +221,7 @@ export class AppComponent {
     this.sidebarVisible = !this.sidebarVisible;
   }
 
-  slidesArray: any[] = [];
-
-  slidesDictionary = this.getConfig();
+  slidesArray: Array<slide> = this.getConfig();
 
   ngOnInit() {
     const swiperEl = this._swiperRef.nativeElement
@@ -231,14 +234,14 @@ export class AppComponent {
     this.options = {
       gridType: GridType.Fit,
       compactType: CompactType.None,
-      initCallback: AppComponent.gridInit,
-      destroyCallback: AppComponent.gridDestroy,
-      gridSizeChangedCallback: AppComponent.gridSizeChanged,
-      itemChangeCallback: AppComponent.itemChange,
-      itemResizeCallback: AppComponent.itemResize,
-      itemInitCallback: AppComponent.itemInit,
-      itemRemovedCallback: AppComponent.itemRemoved,
-      itemValidateCallback: AppComponent.itemValidate,
+      initCallback: this.gridInit,
+      destroyCallback: this.gridDestroy,
+      gridSizeChangedCallback: this.gridSizeChanged,
+      itemChangeCallback: this.itemChange,
+      itemResizeCallback: this.itemResize,
+      itemInitCallback: this.itemInit,
+      itemRemovedCallback: this.itemRemoved,
+      itemValidateCallback: this.itemValidate,
       margin: 10,
       outerMargin: true,
       outerMarginTop: null,
@@ -291,8 +294,6 @@ export class AppComponent {
       disableWarnings: false,
       scrollToNewItems: false
     };
-
-    this.slidesArray = Object.entries(this.getConfig()).map(([key, value]) => ({ [key]: value }));
   }
   ngAfterViewChecked() {
     // Update swiper after running ngfor so that the loaded pages appear

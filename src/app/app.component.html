@@ -1,9 +1,9 @@
 <swiper-container class="swiper" #swiperRef init="false">
   <swiper-slide *ngFor="let slide of slidesArray as array">
     <gridster class="gridster" [options]="options">
-      <gridster-item [item]="item" [id]="getFirstKey(slide)" *ngFor="let item of getGridsterLayout(getFirstKey(slide))">
+      <gridster-item [item]="item" [id]="slide.hex" *ngFor="let item of slide.grid.layout">
         <!-- your content here -->
-        <button class="button" (click)="onRemoveTile(getFirstKey(slide), item['id'])">delete</button>
+        <button class="button" (click)="onRemoveTile(slide.hex, item['id'])">delete</button>
       </gridster-item>
     </gridster>
   </swiper-slide>
