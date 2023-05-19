@@ -4,6 +4,13 @@
       <gridster-item [item]="item" [id]="slide.hex" *ngFor="let item of slide.grid.layout">
         <!-- your content here -->
         <button class="delete-button" (click)="onRemoveTile(slide.hex, item['id'])"><ng-icon name="heroTrash"></ng-icon></button>
+        <div *ngFor="let gridItem of slide.grid.items">
+          <div *ngIf="gridItem.hex === item['id'] && gridItem.content.type === 'text'">
+            <!-- Render text -->
+            <span>{{ gridItem.content.text }}</span>
+          </div>
+        </div>
+        <button class="delete-button add-content-button" (click)="onAddContent(slide.hex, item['id'])"><ng-icon name="heroPlus"></ng-icon></button>
       </gridster-item>
     </gridster>
   </swiper-slide>
@@ -61,6 +68,10 @@
     opacity: 0;
     transition: opacity 100ms;
   }
+  .add-content-button {
+    top: 50px;
+  }
+
   gridster-item:hover .delete-button {
     opacity: 1;
   }

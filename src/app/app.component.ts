@@ -1,14 +1,43 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper, { SwiperOptions } from 'swiper';
-import { Chart, ChartConfiguration, ChartItem, registerables } from 'node_modules/chart.js'
+import { Chart, ChartConfiguration, ChartItem, ChartOptions, registerables } from 'node_modules/chart.js'
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
 import { randomHex, getFirstKey } from './utils';
 
 export interface slide {
   hex: string;
   grid: {
-    layout: Array<GridsterItem>
+    layout: Array<GridsterItem>,
+    items: Array<{
+      hex: string,
+      content: PictureItem | TextItem | BarChartItem,
+    }>;
   }
+}
+export interface PictureItem {
+  type: 'picture';
+  path: string;
+}
+
+export interface TextItem {
+  type: 'text';
+  text: string;
+  style?: {
+    size: Number | "auto";
+    font: string;
+    bold: boolean;
+    italic: boolean;
+    underlined: boolean;
+  }
+}
+
+export interface BarChartItem {
+  type: 'bar';
+  option: ChartOptions;
+  data: {
+    datasets: Array<any>;
+    labels: Array<string>;
+  };
 }
 
 @Component({
@@ -146,7 +175,7 @@ export class AppComponent {
 
   onNewSlideClick() {
     var newHex = randomHex();
-    this.slidesArray.push({hex: newHex, grid: {layout: this.defaultDashboard}})
+    this.slidesArray.push({hex: newHex, grid: {layout: this.defaultDashboard, items: []}})
     this.setConfig(this.slidesArray);
   }
 
@@ -173,6 +202,19 @@ export class AppComponent {
       break;
     }
     this.setConfig(this.slidesArray);
+  }
+
+  onAddContent(slideId: string, tileId: string) {
+    // Get the correct slide using the slideId
+    for (let slide in this.slidesArray) {
+      if (this.slidesArray[slide].hex != slideId) {
+        return;
+      }
+      if (this.slidesArray[slide].grid.items == undefined) {
+        this.slidesArray[slide].grid.items = [];
+      }
+      this.slidesArray[slide].grid.items?.push({hex: tileId, content: {text: "text"} as TextItem});
+    }
   }
 
   onAddTile() {
@@ -210,6 +252,7 @@ export class AppComponent {
 
   onClearConfig() {
     this.setConfig([]);
+    this.slidesArray = [];
   }
 
   sidebarVisible: boolean = false;

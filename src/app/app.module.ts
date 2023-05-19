@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 import { register } from 'swiper/element/bundle';
 import { GridsterComponent, GridsterModule } from 'angular-gridster2';
 import { NgIconsModule } from '@ng-icons/core';
-import { heroTrash } from '@ng-icons/heroicons/outline';
+import { heroTrash, heroPlus } from '@ng-icons/heroicons/outline';
 
 
 register();
@@ -19,7 +19,7 @@ register();
     BrowserModule,
     AppRoutingModule,
     GridsterModule,
-    NgIconsModule.withIcons({ heroTrash }),
+    NgIconsModule.withIcons({ heroTrash, heroPlus }),
   ],
   providers: [],
   bootstrap: [AppComponent],
