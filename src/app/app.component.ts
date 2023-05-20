@@ -232,7 +232,7 @@ export class AppComponent {
         this.slidesArray[slide].grid.items?.push({hex: tileId, content: {type: "text", text: "text"} as TextItem});
       } else {
         // Show a little message that adding new content failed
-        this._snackBar.open("Failed to add tile");
+        this._snackBar.open("Failed to add item to tile");
       }
     }
   }
