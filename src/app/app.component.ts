@@ -79,8 +79,8 @@ export class AppComponent {
   };
   options: GridsterConfig = {};
   defaultDashboard: Array<GridsterItem> = [
-    { cols: 2, rows: 1, y: 0, x: 0, id: randomHex() },
-    { cols: 2, rows: 2, y: 0, x: 2, id: randomHex() }
+    { cols: 2, rows: 1, y: 0, x: 0, id: randomHex(), hasItem: false },
+    { cols: 2, rows: 2, y: 0, x: 2, id: randomHex(), hasItem: false }
   ];;
 
   // Save the function form utils here so that the app.component.html file can use it
@@ -230,6 +230,13 @@ export class AppComponent {
       if (tileAlreadyHasItem == false) {
         // Push the new content into the array
         this.slidesArray[slide].grid.items?.push({hex: tileId, content: {type: "text", text: "text"} as TextItem});
+
+        // Set hasItem to true
+        for (let tile in this.slidesArray[slide].grid.layout) {
+          if (this.slidesArray[slide].grid.layout[tile]['id'] == tileId) {
+            this.slidesArray[slide].grid.layout[tile]['hasItem'] = true;
+          }
+        }
       } else {
         // Show a little message that adding new content failed
         this._snackBar.open("Failed to add item to tile");

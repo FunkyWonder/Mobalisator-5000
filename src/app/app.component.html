@@ -13,7 +13,7 @@
             <span>{{ gridItem.content.text }}</span>
           </div>
         </div>
-        <button class="delete-button add-content-button" (click)="onAddContent(slide.hex, item['id'])"><ng-icon name="heroPlus"></ng-icon></button>
+        <button mat-stroked-button class="add-content-button" *ngIf="!item['hasItem']" (click)="onAddContent(slide.hex, item['id'])"><ng-icon name="heroPlus"></ng-icon></button>
       </gridster-item>
     </gridster>
   </swiper-slide>
@@ -71,7 +71,13 @@
     transition: opacity 100ms;
   }
   .add-content-button {
-    top: 50px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    background-color: white;
+    color: black;
   }
 
   gridster-item:hover .delete-button {
