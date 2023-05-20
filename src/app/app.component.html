@@ -28,9 +28,8 @@
 <div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
   <!-- <button class="button" (click)="onResetGrid()">Reset grid</button> -->
   <button class="button" (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
-  <button class="button" (click)="onClearConfig()">Clear Config</button>
-  <button class="button" (click)="onAddTile()">Add tile</button>
-
+  <button class="button" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>
+  <button class="button" (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
 </div>
 
 <style>

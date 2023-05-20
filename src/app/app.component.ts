@@ -3,17 +3,20 @@ import Swiper, { SwiperOptions } from 'swiper';
 import { Chart, ChartConfiguration, ChartItem, ChartOptions, registerables } from 'node_modules/chart.js'
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
 import { randomHex, getFirstKey } from './utils';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 export interface slide {
   hex: string;
   grid: {
     layout: Array<GridsterItem>,
-    items: Array<{
-      hex: string,
-      content: PictureItem | TextItem | BarChartItem,
-    }>;
+    items: Array<TileItem>;
   }
 }
+export interface TileItem {
+  hex: string,
+  content: PictureItem | TextItem | BarChartItem,
+}
+
 export interface PictureItem {
   type: 'picture';
   path: string;
@@ -46,7 +49,7 @@ export interface BarChartItem {
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  constructor() {
+  constructor(private _snackBar: MatSnackBar) {
     // Bind the method to the current instance of AppComponent
     this.onNewSlideClick = this.onNewSlideClick.bind(this);
     this.itemChange = this.itemChange.bind(this);
@@ -177,9 +180,7 @@ export class AppComponent {
     var newHex = randomHex();
     this.slidesArray.push({hex: newHex, grid: {layout: this.defaultDashboard, items: []}})
     this.setConfig(this.slidesArray);
-  }
-
-  onAddItemToTile(slideId: string) {
+    this._snackBar.open("Slide added");
   }
 
   onRemoveTile(slideId: string, tileId: string) {
@@ -210,10 +211,29 @@ export class AppComponent {
       if (this.slidesArray[slide].hex != slideId) {
         return;
       }
+      // Add an araay if that somehow hasn't happened yet
       if (this.slidesArray[slide].grid.items == undefined) {
         this.slidesArray[slide].grid.items = [];
       }
-      this.slidesArray[slide].grid.items?.push({hex: tileId, content: {text: "text"} as TextItem});
+
+      // Check if the tile already has content, in that case we don't do anything
+      const items = this.slidesArray[slide].grid.items as Array<TileItem>;
+      var tileAlreadyHasItem: boolean = false;
+
+      items.forEach((item) => {
+        if (item.hex === tileId) {
+          // The tile already has content
+          tileAlreadyHasItem = true;
+        }
+      });
+
+      if (tileAlreadyHasItem == false) {
+        // Push the new content into the array
+        this.slidesArray[slide].grid.items?.push({hex: tileId, content: {type: "text", text: "text"} as TextItem});
+      } else {
+        // Show a little message that adding new content failed
+        this._snackBar.open("Failed to add tile");
+      }
     }
   }
 
@@ -244,7 +264,7 @@ export class AppComponent {
         } 
       }
 
-      this.slidesArray[slideNumber].grid.layout.push({ cols: 1, rows: 1, y: maxY+1, x: maxX+1, id: randomHex()});
+      this.slidesArray[slideNumber].grid.layout.push({ cols: 1, rows: 1, y: maxY+2, x: maxX+2, id: randomHex()});
       break;
     }    
     this.setConfig(this.slidesArray);
@@ -253,6 +273,7 @@ export class AppComponent {
   onClearConfig() {
     this.setConfig([]);
     this.slidesArray = [];
+    this._snackBar.open("Configuration wiped!");
   }
 
   sidebarVisible: boolean = false;

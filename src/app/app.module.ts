@@ -7,6 +7,9 @@ import { register } from 'swiper/element/bundle';
 import { GridsterComponent, GridsterModule } from 'angular-gridster2';
 import { NgIconsModule } from '@ng-icons/core';
 import { heroTrash, heroPlus } from '@ng-icons/heroicons/outline';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
 
 
 register();
@@ -20,6 +23,9 @@ register();
     AppRoutingModule,
     GridsterModule,
     NgIconsModule.withIcons({ heroTrash, heroPlus }),
+    BrowserAnimationsModule,
+    MatSnackBarModule,
+    MatButtonModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
