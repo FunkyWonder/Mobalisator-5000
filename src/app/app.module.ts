@@ -10,6 +10,7 @@ import { heroTrash, heroPlus } from '@ng-icons/heroicons/outline';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
+import {MatSelectModule} from '@angular/material/select'; 
 
 
 register();
@@ -26,6 +27,7 @@ register();
     BrowserAnimationsModule,
     MatSnackBarModule,
     MatButtonModule,
+    MatSelectModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
