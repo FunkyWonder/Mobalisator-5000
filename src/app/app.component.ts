@@ -56,7 +56,6 @@ export class AppComponent {
   }
 
   title = 'Mobalisator-5000';
-  selected: any;
 
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef;
