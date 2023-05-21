@@ -57,6 +57,10 @@ export class AppComponent {
 
   title = 'Mobalisator-5000';
 
+  // Items which can be added to a tile
+  // TODO: make it so that instead of matching a string with a particular interface we just straight up match the type
+  tileItems = ["text", "picture", "bar"];
+
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef;
   swiper?: Swiper;

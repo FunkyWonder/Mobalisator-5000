@@ -13,7 +13,17 @@
             <span>{{ gridItem.content.text }}</span>
           </div>
         </div>
-        <button mat-stroked-button class="add-content-button" *ngIf="!item['hasItem']" (click)="onAddContent(slide.hex, item['id'])"><ng-icon name="heroPlus"></ng-icon></button>       
+        <div class="add-content-container" *ngIf="!item['hasItem']" >
+          <mat-form-field class="add-content-selector">
+            <mat-label>Tile item</mat-label>
+            <mat-select>
+              <mat-option *ngFor="let tileItem of tileItems" [value]="tileItem">
+                {{tileItem}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-stroked-button class="add-content-button" (click)="onAddContent(slide.hex, item['id'])"><ng-icon name="heroPlus"></ng-icon></button>
+          </div>
       </gridster-item>
     </gridster>
   </swiper-slide>
@@ -70,15 +80,24 @@
     opacity: 0;
     transition: opacity 100ms;
   }
-  .add-content-button {
+  .add-content-container {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
 
     background-color: white;
-    color: black;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border-radius: 5px;
   }
+  .add-content-button, .add-content-selector{
+    color: black;
+    background-color: white;
+    float: left;
+  }
+
 
   gridster-item:hover .delete-button {
     opacity: 1;
