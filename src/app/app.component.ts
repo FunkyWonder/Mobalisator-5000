@@ -1,47 +1,12 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
-import Swiper, { SwiperOptions } from 'swiper';
-import { Chart, ChartConfiguration, ChartItem, ChartOptions, registerables } from 'node_modules/chart.js'
+import Swiper from 'swiper';
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
 import { randomHex, getFirstKey } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TextItem, TileItem, Slide } from './interfaces';
+import { GridsterCallbacks } from './gridster-callbacks';
+import { swiperOptions, defaultDashboard, gridsterOptions } from './config';
 
-export interface slide {
-  hex: string;
-  grid: {
-    layout: Array<GridsterItem>,
-    items: Array<TileItem>;
-  }
-}
-export interface TileItem {
-  hex: string,
-  content: PictureItem | TextItem | BarChartItem,
-}
-
-export interface PictureItem {
-  type: 'picture';
-  path: string;
-}
-
-export interface TextItem {
-  type: 'text';
-  text: string;
-  style?: {
-    size: Number | "auto";
-    font: string;
-    bold: boolean;
-    italic: boolean;
-    underlined: boolean;
-  }
-}
-
-export interface BarChartItem {
-  type: 'bar';
-  option: ChartOptions;
-  data: {
-    datasets: Array<any>;
-    labels: Array<string>;
-  };
-}
 
 @Component({
   selector: 'app-root',
@@ -53,6 +18,7 @@ export class AppComponent {
     // Bind the method to the current instance of AppComponent
     this.onNewSlideClick = this.onNewSlideClick.bind(this);
     this.itemChange = this.itemChange.bind(this);
+
   }
 
   title = 'Mobalisator-5000';
@@ -61,34 +27,12 @@ export class AppComponent {
   // TODO: make it so that instead of matching a string with a particular interface we just straight up match the type
   tileItems = ["text", "picture", "bar"];
 
+  private gridsterCallbacks: GridsterCallbacks = new GridsterCallbacks();
+  completeGridsterOptions!: GridsterConfig;
+
   @ViewChild('swiperRef', { static: true })
   private _swiperRef!: ElementRef;
   swiper?: Swiper;
-
-  swiperOptions: SwiperOptions = {
-    slidesPerView: 1,
-    zoom: true,
-    enabled: true,
-    pagination: {
-      clickable: true,
-      dynamicBullets: true,
-    },
-    autoHeight: true,
-    allowTouchMove: false,
-    direction: 'vertical',
-    keyboard: {
-      enabled: true,
-    },
-    observer: true,
-  };
-  options: GridsterConfig = {};
-  defaultDashboard: Array<GridsterItem> = [
-    { cols: 2, rows: 1, y: 0, x: 0, id: randomHex(), hasItem: false },
-    { cols: 2, rows: 2, y: 0, x: 2, id: randomHex(), hasItem: false }
-  ];;
-
-  // Save the function form utils here so that the app.component.html file can use it
-  getFirstKey = getFirstKey;
 
   getConfig() {
     var currentConfig = localStorage.getItem("project_config");
@@ -108,58 +52,14 @@ export class AppComponent {
     item: GridsterItem,
     itemComponent: GridsterItemComponentInterface
   ): void {
-    console.info('itemChanged', item, itemComponent);
+    // console.info('itemChanged', item, itemComponent);
 
     var hex = itemComponent.el.id;
-    var items = [];
-    for (let item in itemComponent.gridster.grid) { // Extract all the gridsterItemss from the itemComponents grid
-      items.push(itemComponent.gridster.grid[item].item);
-    }
+    const items = Object.values(itemComponent.gridster.grid).map((gridItem) => gridItem.item); // Retrieve the current grid
+    const hexValues = this.slidesArray.map((item) => item.hex); // Put the hex values of every slide in an array
+    this.slidesArray[hexValues.indexOf(hex)].grid.layout = items; // Update the slide we're on with the new items
 
-    for (let slide in this.slidesArray) {
-      if (this.slidesArray[slide].hex != hex) {
-        return;
-      }
-      this.slidesArray[slide].grid.layout = items;
-    }
     this.setConfig(this.slidesArray);
-  }
-
-  itemResize(
-    item: GridsterItem,
-    itemComponent: GridsterItemComponentInterface
-  ): void {
-    //console.info('itemResized', item, itemComponent);
-  }
-
-  itemInit(
-    item: GridsterItem,
-    itemComponent: GridsterItemComponentInterface
-  ): void {
-    //console.info('itemInitialized', item, itemComponent);
-  }
-
-  itemRemoved(
-    item: GridsterItem,
-    itemComponent: GridsterItemComponentInterface,
-  ): void {
-    //console.info('itemRemoved', item, itemComponent);
-  }
-
-  itemValidate(item: GridsterItem): boolean {
-    return item.cols > 0 && item.rows > 0;
-  }
-
-  gridInit(grid: GridsterComponentInterface): void {
-    console.info('gridInit', grid);
-  }
-
-  gridDestroy(grid: GridsterComponentInterface): void {
-    console.info('gridDestroy', grid);
-  }
-
-  gridSizeChanged(grid: GridsterComponentInterface): void {
-    console.info('gridSizeChanged', grid);
   }
 
   @HostListener('document:keypress', ['$event'])
@@ -182,70 +82,57 @@ export class AppComponent {
 
   onNewSlideClick() {
     var newHex = randomHex();
-    this.slidesArray.push({hex: newHex, grid: {layout: this.defaultDashboard, items: []}})
+    this.slidesArray.push({hex: newHex, grid: {layout: defaultDashboard, items: []}})
     this.setConfig(this.slidesArray);
     this._snackBar.open("Slide added");
   }
 
   onRemoveTile(slideId: string, tileId: string) {
-    // Get the correct slide using the slideId
-    for (let slide in this.slidesArray) {
-      if (this.slidesArray[slide].hex != slideId) {
-        return;
-      }
-      var tiles: Array<GridsterItem> = this.slidesArray[slide].grid.layout;
-      // Loop through tiles to select the one with tileId
-      for (let tile in tiles as Array<GridsterItem>) {
-        if (tiles[tile]['id'] == tileId) {
-          // Remove the tile
-          tiles.splice(Number(tile), 1);
-          // Break out of the loop
-          break;
-        }
-      }
-      // Break out of the loop
-      break;
+    const slideIdIndex = this.slidesArray.findIndex(slide => slide.hex === slideId);
+
+    if (slideIdIndex === -1) {
+      return; // Slide not found, exit the function
     }
+    
+    const slideTilesLayout = this.slidesArray[slideIdIndex].grid.layout;
+    const tileIdIndex = this.slidesArray[slideIdIndex].grid.layout.findIndex(tile => tile['id'] === tileId);
+    
+    if (tileIdIndex === -1) {
+      return; // Tile not found, exit the function
+    }
+    
+    slideTilesLayout.splice(tileIdIndex, 1); // Remove the tile
+
+    this.slidesArray[slideIdIndex].grid.layout = slideTilesLayout
+
     this.setConfig(this.slidesArray);
   }
 
   onAddContent(slideId: string, tileId: string) {
-    // Get the correct slide using the slideId
-    for (let slide in this.slidesArray) {
-      if (this.slidesArray[slide].hex != slideId) {
-        return;
-      }
-      // Add an araay if that somehow hasn't happened yet
-      if (this.slidesArray[slide].grid.items == undefined) {
-        this.slidesArray[slide].grid.items = [];
-      }
+    const slideIdValues = Object.values(this.slidesArray).map((slide) => slide.hex); // Retrieve the current grid
+    const slideIdIndex = slideIdValues.indexOf(slideId); // Get slide index
 
-      // Check if the tile already has content, in that case we don't do anything
-      const items = this.slidesArray[slide].grid.items as Array<TileItem>;
-      var tileAlreadyHasItem: boolean = false;
+    // Check if the tile already has content, in that case we don't do anything
+    const items = this.slidesArray[slideIdIndex].grid.items as Array<TileItem>;
 
-      items.forEach((item) => {
-        if (item.hex === tileId) {
-          // The tile already has content
-          tileAlreadyHasItem = true;
-        }
-      });
-
-      if (tileAlreadyHasItem == false) {
-        // Push the new content into the array
-        this.slidesArray[slide].grid.items?.push({hex: tileId, content: {type: "text", text: "text"} as TextItem});
-
-        // Set hasItem to true
-        for (let tile in this.slidesArray[slide].grid.layout) {
-          if (this.slidesArray[slide].grid.layout[tile]['id'] == tileId) {
-            this.slidesArray[slide].grid.layout[tile]['hasItem'] = true;
-          }
-        }
-      } else {
-        // Show a little message that adding new content failed
+    items.forEach((item) => {
+      if (item.hex === tileId) {
         this._snackBar.open("Failed to add item to tile");
+       return;
       }
-    }
+    });
+
+    // Push the new content into the array
+    this.slidesArray[slideIdIndex].grid.items?.push({hex: tileId, content: {type: "text", text: "text"} as TextItem});
+
+    // Update hasItem:
+    const tileIdIndex = Object.values(this.slidesArray[slideIdIndex].grid.layout)
+    .map(tile => tile['id'])
+    .indexOf(tileId);
+    
+    this.slidesArray[slideIdIndex].grid.layout[tileIdIndex]['hasItem'] = true;
+
+    this.setConfig(this.slidesArray);
   }
 
   onAddTile() {
@@ -293,78 +180,24 @@ export class AppComponent {
     this.sidebarVisible = !this.sidebarVisible;
   }
 
-  slidesArray: Array<slide> = this.getConfig();
+  slidesArray: Array<Slide> = this.getConfig();
 
   ngOnInit() {
     const swiperEl = this._swiperRef.nativeElement
-    Object.assign(swiperEl, this.swiperOptions)
+    Object.assign(swiperEl, swiperOptions)
 
     swiperEl.initialize()
 
     this.swiper = this._swiperRef.nativeElement.swiper
-
-    this.options = {
-      gridType: GridType.Fit,
-      compactType: CompactType.None,
-      initCallback: this.gridInit,
-      destroyCallback: this.gridDestroy,
-      gridSizeChangedCallback: this.gridSizeChanged,
+    this.completeGridsterOptions = { ...gridsterOptions, 
       itemChangeCallback: this.itemChange,
-      itemResizeCallback: this.itemResize,
-      itemInitCallback: this.itemInit,
-      itemRemovedCallback: this.itemRemoved,
-      itemValidateCallback: this.itemValidate,
-      margin: 10,
-      outerMargin: true,
-      outerMarginTop: null,
-      outerMarginRight: null,
-      outerMarginBottom: null,
-      outerMarginLeft: null,
-      useTransformPositioning: true,
-      mobileBreakpoint: 640,
-      useBodyForBreakpoint: false,
-      minCols: 1,
-      maxCols: 100,
-      minRows: 1,
-      maxRows: 100,
-      maxItemCols: 100,
-      minItemCols: 1,
-      maxItemRows: 100,
-      minItemRows: 1,
-      maxItemArea: 2500,
-      minItemArea: 1,
-      defaultItemCols: 1,
-      defaultItemRows: 1,
-      fixedColWidth: 105,
-      fixedRowHeight: 105,
-      keepFixedHeightInMobile: false,
-      keepFixedWidthInMobile: false,
-      scrollSensitivity: 10,
-      scrollSpeed: 20,
-      enableEmptyCellClick: false,
-      enableEmptyCellContextMenu: false,
-      enableEmptyCellDrop: false,
-      enableEmptyCellDrag: false,
-      enableOccupiedCellDrop: false,
-      emptyCellDragMaxCols: 50,
-      emptyCellDragMaxRows: 50,
-      ignoreMarginInRow: false,
-      draggable: {
-        enabled: true
-      },
-      resizable: {
-        enabled: true
-      },
-      swap: false,
-      pushItems: true,
-      disablePushOnDrag: false,
-      disablePushOnResize: false,
-      pushDirections: { north: true, east: true, south: true, west: true },
-      pushResizeItems: false,
-      displayGrid: DisplayGrid.Always,
-      disableWindowResize: false,
-      disableWarnings: false,
-      scrollToNewItems: false
+      itemResizeCallback: this.gridsterCallbacks.itemResize.bind(this),
+      itemInitCallback: this.gridsterCallbacks.itemInit.bind(this),
+      itemRemovedCallback: this.gridsterCallbacks.itemRemoved.bind(this),
+      itemValidateCallback: this.gridsterCallbacks.itemValidate.bind(this),
+      gridInitCallback: this.gridsterCallbacks.gridInit.bind(this),
+      gridDestroyCallback: this.gridsterCallbacks.gridDestroy.bind(this),
+      gridSizeChangedCallback: this.gridsterCallbacks.gridSizeChanged.bind(this),
     };
   }
   ngAfterViewChecked() {

@@ -3,7 +3,7 @@
     <button class="button" (click)="onNewSlideClick()">Add first slide</button>
     </div>
   <swiper-slide *ngFor="let slide of slidesArray as array">
-    <gridster class="gridster" [options]="options">
+    <gridster class="gridster" [options]="completeGridsterOptions">
       <gridster-item [item]="item" [id]="slide.hex" *ngFor="let item of slide.grid.layout">
         <!-- your content here -->
         <button class="delete-button" (click)="onRemoveTile(slide.hex, item['id'])"><ng-icon name="heroTrash"></ng-icon></button>
@@ -89,6 +89,8 @@
     background-color: white;
     display: flex;
     flex-direction: column;
+    min-width: 50%;
+    max-width: 90%; 
     padding: 1rem;
     border-radius: 5px;
   }
