@@ -136,35 +136,23 @@ export class AppComponent {
   }
 
   onAddTile() {
-    var slideNumber: number = this.swiper?.activeIndex as number;
+    var slideIdIndex: number = this.swiper?.activeIndex as number;
 
-    var slideId: string = this.slidesArray[slideNumber].hex;
+    // Iterate over all slides and get the max x and y and add one to them to get the new position of the tile
+    var maxX: number = 0;
+    var maxY: number = 0;
+    var tiles: Array<GridsterItem> = this.slidesArray[slideIdIndex].grid.layout;
+    for (let tile in tiles) {
+      if (tiles[tile].x + tiles[tile].cols > maxX) { // Add the width to the position to get the total width
+        maxX = tiles[tile].x;
+      } 
+      if (tiles[tile].y + tiles[tile].rows > maxY) { // Add the height to the position to get the total height
+        maxY = tiles[tile].y;
+      } 
+    }
 
-    // Of all the current Gridster items get the coordinates of where it is safe to add a new tile
-    
-    // Get current slide
-    for (let slide in this.slidesArray) {
-      if (this.slidesArray[slide].hex != slideId) {
-        return;
-      }
-      // Current slide found
+    this.slidesArray[slideIdIndex].grid.layout.push({ cols: 1, rows: 1, y: maxY+2, x: maxX+2, id: randomHex()});
 
-      // Iterate over all slides and get the max x and y and add one to them to get the new position of the tile
-      var maxX: number = 0;
-      var maxY: number = 0;
-      var tiles: Array<GridsterItem> = this.slidesArray[slide].grid.layout;
-      for (let tile in tiles) {
-        if (tiles[tile].x + tiles[tile].cols > maxX) { // Add the width to the position to get the total width
-          maxX = tiles[tile].x;
-        } 
-        if (tiles[tile].y + tiles[tile].rows > maxY) { // Add the height to the position to get the total height
-          maxY = tiles[tile].y;
-        } 
-      }
-
-      this.slidesArray[slideNumber].grid.layout.push({ cols: 1, rows: 1, y: maxY+2, x: maxX+2, id: randomHex()});
-      break;
-    }    
     this.setConfig(this.slidesArray);
   }
 
