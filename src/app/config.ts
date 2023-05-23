@@ -75,6 +75,6 @@ export const gridsterOptions = {
 };
 
 export const defaultDashboard: Array<GridsterItem> = [
-    { cols: 2, rows: 1, y: 0, x: 0, id: randomHex(), hasItem: false },
-    { cols: 2, rows: 2, y: 0, x: 2, id: randomHex(), hasItem: false }
+    { cols: 2, rows: 1, y: 0, x: 0, id: randomHex(), hasItem: false, selectedItem: "" },
+    { cols: 2, rows: 2, y: 0, x: 2, id: randomHex(), hasItem: false, selectedItem: "" }
 ];

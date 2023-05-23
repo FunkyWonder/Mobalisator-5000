@@ -27,12 +27,11 @@ export class AppComponent {
   getProjectStatus = getProjectStatus;
 
   title = 'Mobalisator-5000';
-  selected = '';
 
   // Items which can be added to a tile
   // TODO: make it so that instead of matching a string with a particular interface we just straight up match the type
   tileItems = [
-    {"friendly_name": "Text", "content": {type: "text", text: "text"} as TextItem}, 
+    {"friendly_name": "Text", "content": {type: "text", text: "Click to edit text!"} as TextItem}, 
     {"friendly_name": "Picture", "content": {type: "picture", path: "https://www.dewerkwijzer.nl/wp-content/uploads/2019/10/MOBA_logo.jpg"} as PictureItem}, 
     {"friendly_name": "Project Build Status", "content": {type: "project-build-status", title: "Project Build Status:", projectId: 381, status:"success"} as ProjectBuildStatusItem}];
 
@@ -146,6 +145,10 @@ export class AppComponent {
     this.slidesArray[slideIdIndex].grid.layout[tileIdIndex]['hasItem'] = true;
 
     this.setConfig(this.slidesArray);
+  }
+
+  updateTextContent(slideId: string, tileId : string, newTextEvent : Event) {
+    console.log(Event);
   }
 
   onAddTile() {

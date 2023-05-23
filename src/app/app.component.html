@@ -1,15 +1,23 @@
+<button mat-fab *ngIf="slidesArray.length === 0 || slidesArray === undefined" class="add-first-slide-button" (click)="onNewSlideClick()">+</button>
 <swiper-container class="swiper" #swiperRef init="false">
-  <div class="add-first-slide" *ngIf="slidesArray.length === 0 || slidesArray === undefined">
-    <button class="button" (click)="onNewSlideClick()">Add first slide</button>
-    </div>
+  <!-- Generate slides -->
   <swiper-slide *ngFor="let slide of slidesArray as array">
+    <!-- grid -->
     <gridster class="gridster" [options]="completeGridsterOptions">
+      <!-- Generate tiles -->
       <gridster-item [item]="item" [id]="slide.hex" *ngFor="let item of slide.grid.layout">
-        <!-- your content here -->
+        <!-- delete button -->
         <button class="delete-button" (click)="onRemoveTile(slide.hex, item['id'])"><ng-icon name="heroTrash"></ng-icon></button>
+        <!-- Tile content -->
         <div *ngFor="let gridItem of slide.grid.items">
-          <div *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'text'">
-            <span>{{ gridItem.content.text }}</span>
+          <div *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'text'" contenteditable="true">
+            <form>
+              <mat-form-field>
+                <mat-label>Your message</mat-label>
+                <input type="text" matInput value="{{gridItem.content.text}}"
+                      placeholder="{{ gridItem.content.text }}">
+              </mat-form-field>
+            </form>
           </div>
           <div *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'picture'">
             <img class="tile-item-picture" src="{{gridItem.content.path}}">
@@ -18,21 +26,24 @@
             <div class="project-build-status-text-container">
               <span>{{ gridItem.content.title }}</span>
               <br>
-              <span style="color: {{projectCoverageToHexColor(getProjectCoverage(gridItem.content.projectId))}}"><strong>{{ getProjectStatus(gridItem.content.projectId) }}</strong></span>
+              <span class="build-status-text" [style.color]="projectCoverageToHexColor(getProjectCoverage(gridItem.content.projectId))">
+                <strong>{{ getProjectStatus(gridItem.content.projectId) }}</strong>
+              </span>
             </div>
           </div>
         </div>
         
+        <!-- if the tile has no content -->
         <div class="add-content-container" *ngIf="!item['hasItem']" >
           <mat-form-field class="add-content-selector">
             <mat-label>Tile item</mat-label>
-            <mat-select [(value)]="selected">
+            <mat-select [(value)]="item['selectedItem']">
               <mat-option *ngFor="let tileItem of tileItems" [value]="tileItem">
                 {{tileItem["friendly_name"]}}
               </mat-option>
             </mat-select>
           </mat-form-field>
-          <button mat-stroked-button class="add-content-button" (click)="onAddContent(slide.hex, item['id'], selected)"><ng-icon name="heroPlus"></ng-icon></button>
+          <button mat-stroked-button class="add-content-button" (click)="onAddContent(slide.hex, item['id'], item['selectedItem'])"><ng-icon name="heroPlus"></ng-icon></button>
           </div>
       </gridster-item>
     </gridster>
@@ -40,7 +51,6 @@
 </swiper-container>
 
 <div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
-  <!-- <button class="button" (click)="onResetGrid()">Reset grid</button> -->
   <button class="button" (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
   <button class="button" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>
   <button class="button" (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
@@ -49,6 +59,7 @@
 <style>
   .swiper {
     height: 100vh;
+    width: 100vw;
   }
 
   .gridster, swiper-slide {
@@ -115,17 +126,22 @@
   }
 
   .project-build-status-container {
-    width: 100%;
-    height: 100%;
     display: flex;
-  justify-content: center;
-  align-items: center;
+    flex-direction: column;
+    text-align: center;
   }
 
   .project-build-status-text-container {
-  
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: min(3vh,1.7vw);
   }
-
+  .build-status-text {
+    /* font-size: xx-large; */
+    font-size: 2em;
+  }
   gridster-item:hover .delete-button {
     opacity: 1;
   }
@@ -163,12 +179,16 @@
     background-color: lightgray;
     z-index: 1000;
   }
-  .add-first-slide button {
+  .add-first-slide-button {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
+    background-color: #D4A418;
+    padding: 3rem;
+    text-align: center;
+    font-size: xx-large;
   }
 </style>
 
