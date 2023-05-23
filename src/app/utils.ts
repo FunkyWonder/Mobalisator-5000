@@ -12,8 +12,5 @@ export function randomHex() : string {
     return result;
 }
 
-export function getFirstKey(obj: any): string {
-    return Object.keys(obj)[0];
-}
 
 

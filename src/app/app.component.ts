@@ -1,11 +1,12 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Swiper from 'swiper';
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
-import { randomHex, getFirstKey } from './utils';
+import { randomHex } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TextItem, TileItem, Slide } from './interfaces';
+import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
 import { swiperOptions, defaultDashboard, gridsterOptions } from './config';
+import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus } from './api';
 
 
 @Component({
@@ -21,11 +22,19 @@ export class AppComponent {
 
   }
 
+  getProjectCoverage = getProjectCoverage;
+  projectCoverageToHexColor = projectCoverageToHexColor;
+  getProjectStatus = getProjectStatus;
+
   title = 'Mobalisator-5000';
+  selected = '';
 
   // Items which can be added to a tile
   // TODO: make it so that instead of matching a string with a particular interface we just straight up match the type
-  tileItems = ["text", "picture", "bar"];
+  tileItems = [
+    {"friendly_name": "Text", "content": {type: "text", text: "text"} as TextItem}, 
+    {"friendly_name": "Picture", "content": {type: "picture", path: "https://www.dewerkwijzer.nl/wp-content/uploads/2019/10/MOBA_logo.jpg"} as PictureItem}, 
+    {"friendly_name": "Project Build Status", "content": {type: "project-build-status", title: "Project Build Status:", projectId: 381, status:"success"} as ProjectBuildStatusItem}];
 
   private gridsterCallbacks: GridsterCallbacks = new GridsterCallbacks();
   completeGridsterOptions!: GridsterConfig;
@@ -108,9 +117,11 @@ export class AppComponent {
     this.setConfig(this.slidesArray);
   }
 
-  onAddContent(slideId: string, tileId: string) {
+  onAddContent(slideId: string, tileId: string, itemToPush: any) {
     const slideIdValues = Object.values(this.slidesArray).map((slide) => slide.hex); // Retrieve the current grid
     const slideIdIndex = slideIdValues.indexOf(slideId); // Get slide index
+
+    console.log(itemToPush);
 
     // Check if the tile already has content, in that case we don't do anything
     const items = this.slidesArray[slideIdIndex].grid.items as Array<TileItem>;
@@ -122,8 +133,10 @@ export class AppComponent {
       }
     });
 
+    itemToPush["hex"] = tileId;
+
     // Push the new content into the array
-    this.slidesArray[slideIdIndex].grid.items?.push({hex: tileId, content: {type: "text", text: "text"} as TextItem});
+    this.slidesArray[slideIdIndex].grid.items?.push(itemToPush);
 
     // Update hasItem:
     const tileIdIndex = Object.values(this.slidesArray[slideIdIndex].grid.layout)

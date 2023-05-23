@@ -8,9 +8,10 @@ export interface Slide {
         items: Array<TileItem>;
     }
 }
+
 export interface TileItem {
     hex: string,
-    content: PictureItem | TextItem | BarChartItem,
+    content: PictureItem | TextItem | BarChartItem | ProjectBuildStatusItem,
 }
 
 export interface PictureItem {
@@ -29,6 +30,22 @@ export interface TextItem {
         underlined: boolean;
     }
 }
+
+export interface ProjectBuildStatusItem {
+    type: 'project-build-status';
+    //backgroundColor: string; // With hashtag
+    title: string;
+    status: string;
+    projectId: number;
+    style?: {
+        size: Number | "auto";
+        font: string;
+        bold: boolean;
+        italic: boolean;
+        underlined: boolean;
+    }
+}
+
 
 export interface BarChartItem {
     type: 'bar';
