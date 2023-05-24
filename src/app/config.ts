@@ -16,6 +16,7 @@ export const swiperOptions = {
         enabled: true,
     },
     observer: true,
+    loop: true,
 };
 
 export const gridsterOptions = {
