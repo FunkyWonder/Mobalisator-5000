@@ -6,8 +6,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
 import { swiperOptions, defaultDashboard, gridsterOptions } from './config';
-import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration } from './api';
-
+import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getWebsiteStatus } from './api';
 
 @Component({
   selector: 'app-root',
@@ -223,6 +222,8 @@ export class AppComponent {
   slidesArray: Array<Slide> = this.getConfig();
 
   ngOnInit() {
+    getWebsiteStatus("https://google.com");
+
     const swiperEl = this._swiperRef.nativeElement
     Object.assign(swiperEl,
       {

@@ -232,3 +232,10 @@ export function getQueueDuration() : {"minutes": Number, "seconds": Number} {
     var seconds = maxDuration % 60;
     return {"minutes": minutes, "seconds": seconds};
 }
+
+export function getWebsiteStatus(url: string) {
+    fetch(url)
+        .then(response => 
+            {return(String(response))}
+        )
+}
