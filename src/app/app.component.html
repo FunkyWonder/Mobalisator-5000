@@ -26,8 +26,8 @@
             <div class="project-build-status-text-container">
               <span>{{ gridItem.content.title }}</span>
               <br>
-              <span class="build-status-text" [style.color]="projectCoverageToHexColor(getProjectCoverage(gridItem.content.projectId))">
-                <strong>{{ getProjectStatus(gridItem.content.projectId) }}</strong>
+              <span class="build-status-text" [style.color]="projectCoverageToHexColor(getProjectCoverage(slide.projectId))">
+                <strong>{{ getProjectStatus(slide.projectId) }}</strong>
               </span>
             </div>
           </div>
