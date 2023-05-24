@@ -129,6 +129,14 @@ export class AppComponent {
       }
 
       const slideTilesLayout = this.slidesArray[slideIdIndex].grid.layout;
+
+      if (slideTilesLayout.length == 1) { // If the slide has no tiles left after we delete this one
+        // Remove the slide
+        this.slidesArray.splice(slideIdIndex, 1);
+        this.setConfig(this.slidesArray);
+        return;
+      }
+
       const tileIdIndex = this.slidesArray[slideIdIndex].grid.layout.findIndex(tile => tile['id'] === tileId);
 
       if (tileIdIndex === -1) {
