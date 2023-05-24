@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, Inject, ViewChild } from '@angular/core';
 import Swiper from 'swiper';
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
-import { randomHex } from './utils';
+import { randomHex, isNumber } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
@@ -112,9 +112,17 @@ export class AppComponent {
 
   onNewSlideClick() {
     var newHex = randomHex();
-    this.slidesArray.push({ hex: newHex, grid: { layout: defaultDashboard, items: [] } })
-    this.setConfig(this.slidesArray);
-    this._snackBar.open("Slide added");
+    const dialogRef = this.dialog.open(ProjectIdDialog, { data: { title: "Project ID", subtitle: "A project ID is to view project information", accept: "Confirm", projectId: 0 } });
+    dialogRef.afterClosed().subscribe(result => {
+      var newHex = randomHex();
+      if (isNumber(result) != true) {
+        this._snackBar.open("Failed to add slide. The given project ID wasn't a number.");
+        return;
+      }
+      this.slidesArray.push({ hex: newHex, projectId: Number(result), grid: { layout: defaultDashboard, items: [] } })
+      this.setConfig(this.slidesArray);
+      this._snackBar.open("Slide added");
+    });
   }
 
   onRemoveTile(slideId: string, tileId: string) {
@@ -310,7 +318,6 @@ export interface ProjectIdDialogData {
   title: string;
   subtitle: string;
   projectId: number;
-  decline: string;
   accept: string;
 }
 

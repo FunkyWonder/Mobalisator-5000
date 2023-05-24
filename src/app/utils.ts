@@ -12,5 +12,10 @@ export function randomHex() : string {
     return result;
 }
 
-
+export function isNumber(value?: string | number): boolean
+{
+   return ((value != null) &&
+           (value !== '') &&
+           !isNaN(Number(value.toString())));
+}
 

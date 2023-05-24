@@ -3,6 +3,7 @@ import { ChartOptions } from 'chart.js'
 
 export interface Slide {
     hex: string;
+    projectId: number;
     grid: {
         layout: Array<GridsterItem>,
         items: Array<TileItem>;
