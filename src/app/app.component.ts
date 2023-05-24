@@ -63,16 +63,16 @@ export class AppComponent {
     localStorage.setItem("project_config", JSON.stringify(config));
   }
 
-  auto_play_duration: number = 60;
+  auto_play_duration: number = this.getAutoplayDuration();
 
   setAutoplayDuration(duration: number) {
     localStorage.setItem("auto_play_duration", String(duration)); // in seconds
+    this.auto_play_duration = duration;
   }
 
   getAutoplayDuration(): number {
     var duration = localStorage.getItem("auto_play_duration"); // in seconds
     if (duration == null) {
-      this.setAutoplayDuration(60);
       return 60; // 60 Seconds
     }
     return Number(duration);
@@ -159,8 +159,6 @@ export class AppComponent {
     const slideIdValues = Object.values(this.slidesArray).map((slide) => slide.hex); // Retrieve the current grid
     const slideIdIndex = slideIdValues.indexOf(slideId); // Get slide index
 
-    console.log(itemToPush);
-
     // Check if the tile already has content, in that case we don't do anything
     const items = this.slidesArray[slideIdIndex].grid.items as Array<TileItem>;
 
@@ -235,7 +233,7 @@ export class AppComponent {
   slidesArray: Array<Slide> = this.getConfig();
 
   ngOnInit() {
-    getWebsiteStatus("https://google.com");
+    // getWebsiteStatus("https://google.com");
 
     const swiperEl = this._swiperRef.nativeElement
     Object.assign(swiperEl,
@@ -243,7 +241,7 @@ export class AppComponent {
         ...swiperOptions,
         autoplay: {
           delay: this.auto_play_duration*1000, // Miliseconds to going back to autoplay
-          disableOnInteraction: true,
+          disableOnInteraction: false,
         }
       })
 
@@ -284,7 +282,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 
-export interface DialogData {
+export interface ConfirmDialogData {
   title: string;
   subtitle: string;
   decline: string;
@@ -300,7 +298,32 @@ export interface DialogData {
 export class ConfirmDialog {
   constructor(
     public dialogRef: MatDialogRef<ConfirmDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData,
+    @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData,
+  ) { }
+
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+}
+
+export interface ProjectIdDialogData {
+  title: string;
+  subtitle: string;
+  projectId: number;
+  decline: string;
+  accept: string;
+}
+
+@Component({
+  selector: 'project-id-dialog',
+  templateUrl: 'project-id-dialog.html',
+  standalone: true,
+  imports: [MatDialogModule, MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule],
+})
+export class ProjectIdDialog {
+  constructor(
+    public dialogRef: MatDialogRef<ProjectIdDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: ProjectIdDialogData,
   ) { }
 
   onNoClick(): void {
