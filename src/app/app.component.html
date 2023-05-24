@@ -60,9 +60,12 @@
 </swiper-container>
 
 <div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
-  <button class="button" (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
-  <button class="button" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>
-  <button class="button" (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
+  <div class="sidebar-content">
+    <h1>Settings</h1>
+    <button mat-flat-button (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
+    <button mat-flat-button (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
+    <button mat-flat-button color="warn" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>
+  </div>
 </div>
 
 <style>
@@ -85,11 +88,6 @@
     border-radius: 8px;
   }
 
-  .button {
-    width: 5rem;
-    height: 5rem;
-  }
-
   .delete-button {
     position: absolute;
     top: 0px;
@@ -105,6 +103,7 @@
     padding: 0.25rem;
     margin: 0.6rem;
   }
+
   .add-content-container {
     position: absolute;
     top: 50%;
@@ -166,19 +165,32 @@
 
   .sidebar {
     position: fixed;
-    height: 100vh;
-    top: 0%;
+    height: 80vh;
+    top: 50%;
+    transform: translateY(-50%);
     /* right: -40vw; */
     width: 40vw;
-    background-color: rgba(255, 255, 255, 100);
+    background-color: #f2f2e3;
+
+    border-color: #D4A418;
+    border-width: 10px 0rem 10px 10px;
+    border-style: solid;
+    border-radius: 20px 0 20px 20px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+
     z-index: 1000;
     transition: right 300ms;
   }
-
-  #test-chart {
-    position: relative;
-    z-index: 2;
+  .sidebar-content {
+    margin-left: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 10px;
   }
+
   .add-first-slide {
     position: absolute;
     top: 0;
