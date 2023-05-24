@@ -62,9 +62,20 @@
 <div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
   <div class="sidebar-content">
     <h1>Settings</h1>
-    <button mat-flat-button (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
-    <button mat-flat-button (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
-    <button mat-flat-button color="warn" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>
+    <button mat-raised-button (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
+    <button mat-raised-button (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
+    <button mat-raised-button color="warn" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>    
+    <h2>Carousel interval in seconds:</h2>
+    <mat-slider
+      [disabled]="carouselAutoPlayOptions.disabled"
+      [max]="carouselAutoPlayOptions.max"
+      [min]="carouselAutoPlayOptions.min"
+      [step]="carouselAutoPlayOptions.step"
+      [discrete]="carouselAutoPlayOptions.discrete"
+      [showTickMarks]="carouselAutoPlayOptions.showTickMarks"
+      [color]="004082">
+      <input matSliderThumb [(ngModel)]="auto_play_duration" (ngModelChange)="setAutoplayDuration(auto_play_duration)">
+    </mat-slider>
   </div>
 </div>
 
@@ -131,6 +142,11 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+  }
+
+  .mdc-slider__track--inactive {
+    color: gray;
+    background-color: gray;
   }
 
   .project-build-status-container {

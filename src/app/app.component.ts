@@ -5,8 +5,9 @@ import { randomHex } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
-import { swiperOptions, defaultDashboard, gridsterOptions } from './config';
+import { swiperOptions, defaultDashboard, gridsterOptions, carouselAutoPlayOptions } from './config';
 import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getWebsiteStatus } from './api';
+
 
 @Component({
   selector: 'app-root',
@@ -25,6 +26,7 @@ export class AppComponent {
   projectCoverageToHexColor = projectCoverageToHexColor;
   getProjectStatus = getProjectStatus;
   getQueueDuration = getQueueDuration;
+  carouselAutoPlayOptions = carouselAutoPlayOptions;
 
   title = 'Mobalisator-5000';
 
@@ -61,14 +63,17 @@ export class AppComponent {
     localStorage.setItem("project_config", JSON.stringify(config));
   }
 
+  auto_play_duration: number = 60;
+
   setAutoplayDuration(duration: number) {
-    localStorage.setItem("auto_play_duration", String(duration)); // in miliseconds
+    localStorage.setItem("auto_play_duration", String(duration)); // in seconds
   }
-  getAutoplayDuration(): Number {
-    var duration = localStorage.getItem("auto_play_duration"); // in miliseconds
+
+  getAutoplayDuration(): number {
+    var duration = localStorage.getItem("auto_play_duration"); // in seconds
     if (duration == null) {
-      this.setAutoplayDuration(60000);
-      return 60000; // 60 Seconds
+      this.setAutoplayDuration(60);
+      return 60; // 60 Seconds
     }
     return Number(duration);
   }
@@ -237,7 +242,7 @@ export class AppComponent {
       {
         ...swiperOptions,
         autoplay: {
-          delay: this.getAutoplayDuration(), // Miliseconds to going back to autoplay
+          delay: this.auto_play_duration*1000, // Miliseconds to going back to autoplay
           disableOnInteraction: true,
         }
       })
@@ -263,6 +268,8 @@ export class AppComponent {
       this.queueMinutes = queueDuration.minutes;
       this.queueSeconds = queueDuration.seconds;
     }, 1000);
+
+    this.auto_play_duration = this.getAutoplayDuration();
   }
 
   ngAfterViewChecked() {

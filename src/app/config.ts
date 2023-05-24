@@ -7,7 +7,7 @@ export const swiperOptions = {
     enabled: true,
     pagination: {
         clickable: true,
-        dynamicBullets: true,
+        // dynamicBullets: true,
     },
     autoHeight: true,
     allowTouchMove: false,
@@ -16,8 +16,17 @@ export const swiperOptions = {
         enabled: true,
     },
     observer: true,
-    loop: true,
+    // loop: true,
 };
+
+export const carouselAutoPlayOptions = {
+    disabled: false,
+    max: 600,
+    min: 10,
+    step: 10,
+    showTickMarks: false,
+    discrete: true,
+}
 
 export const gridsterOptions = {
     gridType: GridType.Fit,
