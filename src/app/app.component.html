@@ -19,15 +19,37 @@
               </mat-form-field>
             </form>
           </div>
+          <!-- picture item -->
           <div *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'picture'">
-            <img class="tile-item-picture" src="{{gridItem.content.path}}">
+            <img class="tile-item-picture" src="{{ gridItem.content.path }}">
           </div>
+          <!-- Build status item -->
           <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'project-build-status'">
             <div class="project-build-status-text-container">
               <span>{{ gridItem.content.title }}</span>
               <br>
               <span class="build-status-text" [style.color]="projectCoverageToHexColor(getProjectCoverage(slide.projectId))">
                 <strong>{{ getProjectStatus(slide.projectId) }}</strong>
+              </span>
+            </div>
+          </div>
+          <!-- Project ID item -->
+          <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'project-id'">
+            <div class="project-build-status-text-container">
+              <span>{{ gridItem.content.title }}</span>
+              <br>
+              <span class="build-status-text">
+                <strong>{{ slide.projectId }}</strong>
+              </span>
+            </div>
+          </div>
+          <!-- Last Activity item -->
+          <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'last-activity'">
+            <div class="project-build-status-text-container">
+              <span>{{ gridItem.content.title }}</span>
+              <br>
+              <span class="build-status-text">
+                <strong>{{ getLastActivity(slide.projectId) }}</strong>
               </span>
             </div>
           </div>

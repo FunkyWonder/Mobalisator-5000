@@ -3,10 +3,10 @@ import Swiper from 'swiper';
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
 import { randomHex, isNumber } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem } from './interfaces';
+import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem, ProjectIdItem, LastActivityItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
 import { swiperOptions, defaultDashboard, gridsterOptions, carouselAutoPlayOptions } from './config';
-import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getWebsiteStatus } from './api';
+import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getWebsiteStatus, getLastActivity } from './api';
 
 
 @Component({
@@ -26,6 +26,7 @@ export class AppComponent {
   projectCoverageToHexColor = projectCoverageToHexColor;
   getProjectStatus = getProjectStatus;
   getQueueDuration = getQueueDuration;
+  getLastActivity = getLastActivity;
   carouselAutoPlayOptions = carouselAutoPlayOptions;
 
   title = 'Mobalisator-5000';
@@ -35,8 +36,11 @@ export class AppComponent {
   tileItems = [
     { "friendly_name": "Text", "content": { type: "text", text: "Click to edit text!" } as TextItem },
     { "friendly_name": "Picture", "content": { type: "picture", path: "https://www.dewerkwijzer.nl/wp-content/uploads/2019/10/MOBA_logo.jpg" } as PictureItem },
-    { "friendly_name": "Project Build Status", "content": { type: "project-build-status", title: "Project Build Status:", projectId: 381, status: "success" } as ProjectBuildStatusItem },
-    { "friendly_name": "Queue Duration", "content": { type: "queue-status", title: "Queue Duration:" } as QueueStatusItem }
+    { "friendly_name": "Project Build Status", "content": { type: "project-build-status", title: "Project Build Status:"} as ProjectBuildStatusItem },
+    { "friendly_name": "Queue Duration", "content": { type: "queue-status", title: "Queue Duration:" } as QueueStatusItem },
+    { "friendly_name": "Project ID", "content": { type: "project-id", title: "Project ID: "} as ProjectIdItem },
+    { "friendly_name": "Last Activity", "content": { type: "last-activity", title: "Last activity on:"} as LastActivityItem },
+
   ];
 
   queueMinutes: Number = 0;

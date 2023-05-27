@@ -12,7 +12,7 @@ export interface Slide {
 
 export interface TileItem {
     hex: string,
-    content: PictureItem | TextItem | BarChartItem | ProjectBuildStatusItem | QueueStatusItem,
+    content: PictureItem | TextItem | BarChartItem | ProjectBuildStatusItem | QueueStatusItem | ProjectIdItem | LastActivityItem,
 }
 
 export interface PictureItem {
@@ -47,10 +47,35 @@ export interface ProjectBuildStatusItem {
     }
 }
 
+export interface ProjectIdItem {
+    type: 'project-id';
+    title: string;
+    style?: {
+        size: Number | "auto";
+        font: string;
+        bold: boolean;
+        italic: boolean;
+        underlined: boolean;
+    }
+}
+
 export interface QueueStatusItem {
     type: 'queue-status';
     title: string;
     status: string;
+    style?: {
+        size: Number | "auto";
+        font: string;
+        bold: boolean;
+        italic: boolean;
+        underlined: boolean;
+    }
+}
+
+export interface LastActivityItem {
+    type: 'last-activity';
+    title: string;
+    lastActivity: string;
     style?: {
         size: Number | "auto";
         font: string;
