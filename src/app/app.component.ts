@@ -1,13 +1,14 @@
 import { Component, ElementRef, HostListener, Inject, ViewChild } from '@angular/core';
 import Swiper from 'swiper';
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
-import { randomHex } from './utils';
+import { randomHex, isNumber } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem, ApiStatusItem } from './interfaces';
+import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem, ProjectIdItem, LastActivityItem, ApiStatusItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
-import { swiperOptions, defaultDashboard, gridsterOptions } from './config';
-import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getApiStatus } from './api';
+import { swiperOptions, defaultDashboard, gridsterOptions, carouselAutoPlayOptions } from './config';
+import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getApiStatus, getLastActivity } from './api';
 import { HttpClient } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,8 @@ export class AppComponent {
   projectCoverageToHexColor = projectCoverageToHexColor;
   getProjectStatus = getProjectStatus;
   getQueueDuration = getQueueDuration;
+  getLastActivity = getLastActivity;
+  carouselAutoPlayOptions = carouselAutoPlayOptions;
   getApiStatus = getApiStatus;
 
   title = 'Mobalisator-5000';
@@ -35,8 +38,10 @@ export class AppComponent {
   tileItems = [
     { "friendly_name": "Text", "content": { type: "text", text: "Click to edit text!" } as TextItem },
     { "friendly_name": "Picture", "content": { type: "picture", path: "https://www.dewerkwijzer.nl/wp-content/uploads/2019/10/MOBA_logo.jpg" } as PictureItem },
-    { "friendly_name": "Project Build Status", "content": { type: "project-build-status", title: "Project Build Status:", projectId: 381, status: "success" } as ProjectBuildStatusItem },
+    { "friendly_name": "Project Build Status", "content": { type: "project-build-status", title: "Project Build Status:"} as ProjectBuildStatusItem },
     { "friendly_name": "Queue Duration", "content": { type: "queue-status", title: "Queue Duration:" } as QueueStatusItem },
+    { "friendly_name": "Project ID", "content": { type: "project-id", title: "Project ID: "} as ProjectIdItem },
+    { "friendly_name": "Last Activity", "content": { type: "last-activity", title: "Last activity on:"} as LastActivityItem },
     { "friendly_name": "Api Status", "content": { type: "api-status", title: "Api Status:" } as ApiStatusItem }
   ];
 
@@ -64,14 +69,17 @@ export class AppComponent {
     localStorage.setItem("project_config", JSON.stringify(config));
   }
 
+  auto_play_duration: number = this.getAutoplayDuration();
+
   setAutoplayDuration(duration: number) {
-    localStorage.setItem("auto_play_duration", String(duration)); // in miliseconds
+    localStorage.setItem("auto_play_duration", String(duration)); // in seconds
+    this.auto_play_duration = duration;
   }
-  getAutoplayDuration(): Number {
-    var duration = localStorage.getItem("auto_play_duration"); // in miliseconds
+
+  getAutoplayDuration(): number {
+    var duration = localStorage.getItem("auto_play_duration"); // in seconds
     if (duration == null) {
-      this.setAutoplayDuration(60000);
-      return 60000; // 60 Seconds
+      return 60; // 60 Seconds
     }
     return Number(duration);
   }
@@ -110,9 +118,27 @@ export class AppComponent {
 
   onNewSlideClick() {
     var newHex = randomHex();
-    this.slidesArray.push({ hex: newHex, grid: { layout: defaultDashboard, items: [] } })
-    this.setConfig(this.slidesArray);
-    this._snackBar.open("Slide added");
+    const dialogRef = this.dialog.open(ProjectIdDialog, { data: { title: "Project ID", subtitle: "A project ID is to view project information", accept: "Confirm", projectId: 0 } });
+    dialogRef.afterClosed().subscribe(result => {
+      var newHex = randomHex();
+      if (isNumber(result) != true) {
+        this._snackBar.open("Failed to add slide. The given project ID wasn't a number.");
+        return;
+      }
+      this.slidesArray.push({ hex: newHex, 
+                              projectId: Number(result), 
+                              grid: { layout: defaultDashboard, items: [] },
+                              info: {
+                                last_activity_at: getLastActivity(Number(result)),
+                                project_status: {
+                                  color: projectCoverageToHexColor(getProjectCoverage(Number(result))),
+                                  status: getProjectStatus(Number(result)),
+                                }
+                              }
+                            })
+      this.setConfig(this.slidesArray);
+      this._snackBar.open("Slide added");
+    });
   }
 
   onRemoveTile(slideId: string, tileId: string) {
@@ -156,8 +182,6 @@ export class AppComponent {
   onAddContent(slideId: string, tileId: string, itemToPush: any) {
     const slideIdValues = Object.values(this.slidesArray).map((slide) => slide.hex); // Retrieve the current grid
     const slideIdIndex = slideIdValues.indexOf(slideId); // Get slide index
-
-    console.log(itemToPush);
 
     // Check if the tile already has content, in that case we don't do anything
     const items = this.slidesArray[slideIdIndex].grid.items as Array<TileItem>;
@@ -230,6 +254,16 @@ export class AppComponent {
     this.sidebarVisible = !this.sidebarVisible;
   }
 
+  updateInfo() {
+    // Update all info values in this.slidesArray
+    for (let slide in this.slidesArray) {
+      var projectId = this.slidesArray[slide].projectId;
+      this.slidesArray[slide].info.last_activity_at = getLastActivity(projectId);
+      this.slidesArray[slide].info.project_status.color = projectCoverageToHexColor(getProjectCoverage(projectId));
+      this.slidesArray[slide].info.project_status.status = getProjectStatus(projectId);
+    }
+  }
+
   slidesArray: Array<Slide> = this.getConfig();
 
   ngOnInit() {
@@ -238,8 +272,8 @@ export class AppComponent {
       {
         ...swiperOptions,
         autoplay: {
-          delay: this.getAutoplayDuration(), // Miliseconds to going back to autoplay
-          disableOnInteraction: true,
+          delay: this.auto_play_duration*1000, // Miliseconds to going back to autoplay
+          disableOnInteraction: false,
         }
       })
 
@@ -263,7 +297,10 @@ export class AppComponent {
       const queueDuration = this.getQueueDuration();
       this.queueMinutes = queueDuration.minutes;
       this.queueSeconds = queueDuration.seconds;
+      this.updateInfo();
     }, 1000);
+
+    this.auto_play_duration = this.getAutoplayDuration();
   }
 
   ngAfterViewChecked() {
@@ -278,7 +315,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 
-export interface DialogData {
+export interface ConfirmDialogData {
   title: string;
   subtitle: string;
   decline: string;
@@ -294,7 +331,31 @@ export interface DialogData {
 export class ConfirmDialog {
   constructor(
     public dialogRef: MatDialogRef<ConfirmDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData,
+    @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData,
+  ) { }
+
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+}
+
+export interface ProjectIdDialogData {
+  title: string;
+  subtitle: string;
+  projectId: number;
+  accept: string;
+}
+
+@Component({
+  selector: 'project-id-dialog',
+  templateUrl: 'project-id-dialog.html',
+  standalone: true,
+  imports: [MatDialogModule, MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule],
+})
+export class ProjectIdDialog {
+  constructor(
+    public dialogRef: MatDialogRef<ProjectIdDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: ProjectIdDialogData,
   ) { }
 
   onNoClick(): void {

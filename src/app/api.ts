@@ -240,3 +240,16 @@ export function getApiStatus(url: string) {
     apiData.subscribe(res => responseStatus = res.status);
     return responseStatus;
 }
+
+export function getLastActivity(projectId: number) : string {
+    var projectPipeline = getAllGitLabProjects();
+    for (let project of projectPipeline) {
+        if (project["id"] == projectId) {
+            var last_activity_at = project["last_activity_at"];
+            var converted_date = new Date(last_activity_at);
+            return `${converted_date.toLocaleDateString()} ${converted_date.toLocaleTimeString()}`;
+            break;
+        }
+    }
+    return "Never"
+}

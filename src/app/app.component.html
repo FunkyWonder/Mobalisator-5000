@@ -19,15 +19,37 @@
               </mat-form-field>
             </form>
           </div>
+          <!-- picture item -->
           <div *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'picture'">
-            <img class="tile-item-picture" src="{{gridItem.content.path}}">
+            <img class="tile-item-picture" src="{{ gridItem.content.path }}">
           </div>
+          <!-- Build status item -->
           <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'project-build-status'">
             <div class="project-build-status-text-container">
               <span>{{ gridItem.content.title }}</span>
               <br>
-              <span class="build-status-text" [style.color]="projectCoverageToHexColor(getProjectCoverage(gridItem.content.projectId))">
-                <strong>{{ getProjectStatus(gridItem.content.projectId) }}</strong>
+              <span class="build-status-text" [style.color]="slide.info.project_status.color">
+                <strong>{{ slide.info.project_status.status }}</strong>
+              </span>
+            </div>
+          </div>
+          <!-- Project ID item -->
+          <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'project-id'">
+            <div class="project-build-status-text-container">
+              <span>{{ gridItem.content.title }}</span>
+              <br>
+              <span class="build-status-text">
+                <strong>{{ slide.projectId }}</strong>
+              </span>
+            </div>
+          </div>
+          <!-- Last Activity item -->
+          <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'last-activity'">
+            <div class="project-build-status-text-container">
+              <span>{{ gridItem.content.title }}</span>
+              <br>
+              <span class="build-status-text">
+                <strong>{{ slide.info.last_activity_at }}</strong>
               </span>
             </div>
           </div>
@@ -71,9 +93,20 @@
 <div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
   <div class="sidebar-content">
     <h1>Settings</h1>
-    <button mat-flat-button (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
-    <button mat-flat-button (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
-    <button mat-flat-button color="warn" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>
+    <button mat-raised-button (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
+    <button mat-raised-button (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
+    <button mat-raised-button color="warn" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>    
+    <h2>Carousel interval in seconds:</h2>
+    <mat-slider
+      [disabled]="carouselAutoPlayOptions.disabled"
+      [max]="carouselAutoPlayOptions.max"
+      [min]="carouselAutoPlayOptions.min"
+      [step]="carouselAutoPlayOptions.step"
+      [discrete]="carouselAutoPlayOptions.discrete"
+      [showTickMarks]="carouselAutoPlayOptions.showTickMarks"
+      [color]="004082">
+      <input matSliderThumb [(ngModel)]="auto_play_duration" (ngModelChange)="setAutoplayDuration(auto_play_duration)">
+    </mat-slider>
   </div>
 </div>
 
@@ -140,6 +173,11 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+  }
+
+  .mdc-slider__track--inactive {
+    color: gray;
+    background-color: gray;
   }
 
   .project-build-status-container {
