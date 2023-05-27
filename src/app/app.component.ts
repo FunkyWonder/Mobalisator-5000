@@ -3,10 +3,11 @@ import Swiper from 'swiper';
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
 import { randomHex } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem } from './interfaces';
+import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem, ApiStatusItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
 import { swiperOptions, defaultDashboard, gridsterOptions } from './config';
-import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getWebsiteStatus } from './api';
+import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getApiStatus } from './api';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -14,17 +15,18 @@ import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQue
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  constructor(private _snackBar: MatSnackBar, public dialog: MatDialog) {
+  constructor(private _snackBar: MatSnackBar, public dialog: MatDialog, private http: HttpClient) {
     // Bind the method to the current instance of AppComponent
     this.onNewSlideClick = this.onNewSlideClick.bind(this);
     this.itemChange = this.itemChange.bind(this);
 
   }
-
+  
   getProjectCoverage = getProjectCoverage;
   projectCoverageToHexColor = projectCoverageToHexColor;
   getProjectStatus = getProjectStatus;
   getQueueDuration = getQueueDuration;
+  getApiStatus = getApiStatus;
 
   title = 'Mobalisator-5000';
 
@@ -34,7 +36,8 @@ export class AppComponent {
     { "friendly_name": "Text", "content": { type: "text", text: "Click to edit text!" } as TextItem },
     { "friendly_name": "Picture", "content": { type: "picture", path: "https://www.dewerkwijzer.nl/wp-content/uploads/2019/10/MOBA_logo.jpg" } as PictureItem },
     { "friendly_name": "Project Build Status", "content": { type: "project-build-status", title: "Project Build Status:", projectId: 381, status: "success" } as ProjectBuildStatusItem },
-    { "friendly_name": "Queue Duration", "content": { type: "queue-status", title: "Queue Duration:" } as QueueStatusItem }
+    { "friendly_name": "Queue Duration", "content": { type: "queue-status", title: "Queue Duration:" } as QueueStatusItem },
+    { "friendly_name": "Api Status", "content": { type: "api-status", title: "Api Status:" } as ApiStatusItem }
   ];
 
   queueMinutes: Number = 0;
@@ -230,8 +233,6 @@ export class AppComponent {
   slidesArray: Array<Slide> = this.getConfig();
 
   ngOnInit() {
-    getWebsiteStatus("https://google.com");
-
     const swiperEl = this._swiperRef.nativeElement
     Object.assign(swiperEl,
       {

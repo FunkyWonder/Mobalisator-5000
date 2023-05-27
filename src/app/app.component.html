@@ -40,6 +40,15 @@
               </span>
             </div>
           </div>
+          <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'api-status'">
+            <div class="project-build-status-text-container">
+              <span>{{ gridItem.content.title }}</span>
+              <br>
+              <span class="build-status-text">
+                <strong>{{ getApiStatus("https://jsonplaceholder.typicode.com/posts") }}</strong>
+              </span>
+            </div>
+          </div>
         </div>
         
         <!-- if the tile has no content -->

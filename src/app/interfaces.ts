@@ -11,7 +11,7 @@ export interface Slide {
 
 export interface TileItem {
     hex: string,
-    content: PictureItem | TextItem | BarChartItem | ProjectBuildStatusItem | QueueStatusItem,
+    content: PictureItem | TextItem | BarChartItem | ProjectBuildStatusItem | QueueStatusItem | ApiStatusItem,
 }
 
 export interface PictureItem {
@@ -66,4 +66,17 @@ export interface BarChartItem {
         datasets: Array<any>;
         labels: Array<string>;
     };
+}
+
+export interface ApiStatusItem {
+    type: 'api-status';
+    title: string;
+    status: string;
+    style?: {
+        size: Number | "auto";
+        font: string;
+        bold: boolean;
+        italic: boolean;
+        underlined: boolean;
+    }
 }

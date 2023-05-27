@@ -1,3 +1,4 @@
+import { ajax } from 'rxjs/ajax';
 
 export function getAllGitLabProjects() {
     var api_endpoint: string = `https://gitlab.moba.net/api/v4/projects/`;
@@ -233,9 +234,9 @@ export function getQueueDuration() : {"minutes": Number, "seconds": Number} {
     return {"minutes": minutes, "seconds": seconds};
 }
 
-export function getWebsiteStatus(url: string) {
-    fetch(url)
-        .then(response => 
-            {return(String(response))}
-        )
+export function getApiStatus(url: string) {
+    var responseStatus = 404;
+    const apiData = ajax(url);
+    apiData.subscribe(res => responseStatus = res.status);
+    return responseStatus;
 }
