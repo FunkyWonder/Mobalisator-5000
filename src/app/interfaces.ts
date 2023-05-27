@@ -4,6 +4,13 @@ import { ChartOptions } from 'chart.js'
 export interface Slide {
     hex: string;
     projectId: number;
+    info: {
+        last_activity_at: string;
+        project_status: {
+            color: string;
+            status: string;
+        }
+    }
     grid: {
         layout: Array<GridsterItem>,
         items: Array<TileItem>;

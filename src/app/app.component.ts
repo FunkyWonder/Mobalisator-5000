@@ -123,7 +123,17 @@ export class AppComponent {
         this._snackBar.open("Failed to add slide. The given project ID wasn't a number.");
         return;
       }
-      this.slidesArray.push({ hex: newHex, projectId: Number(result), grid: { layout: defaultDashboard, items: [] } })
+      this.slidesArray.push({ hex: newHex, 
+                              projectId: Number(result), 
+                              grid: { layout: defaultDashboard, items: [] },
+                              info: {
+                                last_activity_at: getLastActivity(Number(result)),
+                                project_status: {
+                                  color: projectCoverageToHexColor(getProjectCoverage(Number(result))),
+                                  status: getProjectStatus(Number(result)),
+                                }
+                              }
+                            })
       this.setConfig(this.slidesArray);
       this._snackBar.open("Slide added");
     });
@@ -242,6 +252,16 @@ export class AppComponent {
     this.sidebarVisible = !this.sidebarVisible;
   }
 
+  updateInfo() {
+    // Update all info values in this.slidesArray
+    for (let slide in this.slidesArray) {
+      var projectId = this.slidesArray[slide].projectId;
+      this.slidesArray[slide].info.last_activity_at = getLastActivity(projectId);
+      this.slidesArray[slide].info.project_status.color = projectCoverageToHexColor(getProjectCoverage(projectId));
+      this.slidesArray[slide].info.project_status.status = getProjectStatus(projectId);
+    }
+  }
+
   slidesArray: Array<Slide> = this.getConfig();
 
   ngOnInit() {
@@ -277,6 +297,7 @@ export class AppComponent {
       const queueDuration = this.getQueueDuration();
       this.queueMinutes = queueDuration.minutes;
       this.queueSeconds = queueDuration.seconds;
+      this.updateInfo();
     }, 1000);
 
     this.auto_play_duration = this.getAutoplayDuration();

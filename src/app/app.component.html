@@ -28,8 +28,8 @@
             <div class="project-build-status-text-container">
               <span>{{ gridItem.content.title }}</span>
               <br>
-              <span class="build-status-text" [style.color]="projectCoverageToHexColor(getProjectCoverage(slide.projectId))">
-                <strong>{{ getProjectStatus(slide.projectId) }}</strong>
+              <span class="build-status-text" [style.color]="slide.info.project_status.color">
+                <strong>{{ slide.info.project_status.status }}</strong>
               </span>
             </div>
           </div>
@@ -49,7 +49,7 @@
               <span>{{ gridItem.content.title }}</span>
               <br>
               <span class="build-status-text">
-                <strong>{{ getLastActivity(slide.projectId) }}</strong>
+                <strong>{{ slide.info.last_activity_at }}</strong>
               </span>
             </div>
           </div>
