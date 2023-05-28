@@ -20,4 +20,4 @@ RUN npm run build
 FROM nginx:1.25.0-alpine
 
 #Copy built angular files to NGINX HTML folder
-COPY --from=build /usr/src/app/dist/Mobalisator-5000/ /usr/share/nginx/html
+COPY --from=build /usr/src/app/dist/mobalisator-5000/ /usr/share/nginx/html

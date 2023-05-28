@@ -25,3 +25,10 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+## Docker container
+Build docker image:
+docker build -t my-ng-app .
+
+Spinning the docker container with below command expose your app at port 80
+docker run -dp 3000:80 my-ng-app
