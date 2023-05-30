@@ -1,5 +1,3 @@
-import { ajax } from 'rxjs/ajax';
-
 export function getAllGitLabProjects() {
     var api_endpoint: string = `https://gitlab.moba.net/api/v4/projects/`;
     var response = [ 
@@ -232,13 +230,6 @@ export function getQueueDuration() : {"minutes": Number, "seconds": Number} {
     var minutes = Math.floor(maxDuration / 60);
     var seconds = maxDuration % 60;
     return {"minutes": minutes, "seconds": seconds};
-}
-
-export function getApiStatus(url: string) {
-    var responseStatus = 404;
-    const apiData = ajax(url);
-    apiData.subscribe(res => responseStatus = res.status);
-    return responseStatus;
 }
 
 export function getLastActivity(projectId: number) : string {

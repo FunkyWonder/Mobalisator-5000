@@ -1,0 +1,15 @@
+<h1 mat-dialog-title>{{data.title}}</h1>
+<div mat-dialog-content>
+  <p>{{ data.subtitle }}</p>  
+  <mat-form-field>
+    <mat-label>{{ data.apiNameHint}}</mat-label>
+    <input matInput [(ngModel)]="data.apiName">
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>{{ data.apiUrlHint }}</mat-label>
+    <input matInput [(ngModel)]="data.apiUrl" Text="Api Url">
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button [mat-dialog-close]="[data.apiUrl, data.apiName]" cdkFocusInitial>{{ data.accept }}</button>
+</div>

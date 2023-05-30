@@ -6,8 +6,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem, ProjectIdItem, LastActivityItem, ApiStatusItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
 import { swiperOptions, defaultDashboard, gridsterOptions, carouselAutoPlayOptions } from './config';
-import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getApiStatus, getLastActivity } from './api';
+import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getLastActivity } from './api';
 import { HttpClient } from '@angular/common/http';
+import { ApiDialog } from './api-dialog.component'
+import { ajax } from 'rxjs/ajax';
 
 
 @Component({
@@ -29,7 +31,6 @@ export class AppComponent {
   getQueueDuration = getQueueDuration;
   getLastActivity = getLastActivity;
   carouselAutoPlayOptions = carouselAutoPlayOptions;
-  getApiStatus = getApiStatus;
 
   title = 'Mobalisator-5000';
 
@@ -45,6 +46,14 @@ export class AppComponent {
     { "friendly_name": "Api Status", "content": { type: "api-status", title: "Api Status:" } as ApiStatusItem }
   ];
 
+  responseStatus = 0;
+  reponseStatusArray = [{ "apiName": "", "apiUrl": ""}]
+
+  getApiStatus(url: string) {
+    const apiData = ajax(url);
+    apiData.subscribe(res => this.responseStatus = res.status);
+  }
+  
   queueMinutes: Number = 0;
   queueSeconds: Number = 0;
 
@@ -264,9 +273,39 @@ export class AppComponent {
     }
   }
 
+  openApiDialog() {
+    // const dialogRef = this.dialog.open(ApiDialog, { data: { title: "Enter API info", subtitle: "", apiName: "", apiNameHint: "API url", apiUrl: "", apiUrlHint: string;
+    //   accept: string;
+    //   decline: string;
+    // }  });
+    // dialogRef.afterClosed().subscribe(result => {
+    //   var newHex = randomHex();
+    //   if (isNumber(result) != true) {
+    //     this._snackBar.open("Failed to add slide. The given project ID wasn't a number.");
+    //     return;
+    //   }
+    //   this.slidesArray.push({ hex: newHex, 
+    //                           projectId: Number(result), 
+    //                           grid: { layout: defaultDashboard, items: [] },
+    //                           info: {
+    //                             last_activity_at: getLastActivity(Number(result)),
+    //                             project_status: {
+    //                               color: projectCoverageToHexColor(getProjectCoverage(Number(result))),
+    //                               status: getProjectStatus(Number(result)),
+    //                             }
+    //                           }
+    //                         })
+    //   this.setConfig(this.slidesArray);
+    //   this._snackBar.open("Slide added");
+    // });
+  }
+
   slidesArray: Array<Slide> = this.getConfig();
 
   ngOnInit() {
+    this.getApiStatus("https://jsonplaceholder.typicode.com");
+    console.log(this.responseStatus);
+
     const swiperEl = this._swiperRef.nativeElement
     Object.assign(swiperEl,
       {
