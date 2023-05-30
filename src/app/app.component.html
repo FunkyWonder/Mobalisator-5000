@@ -1,7 +1,6 @@
-<button mat-fab *ngIf="slidesArray.length === 0 || slidesArray === undefined" class="add-first-slide-button" (click)="onNewSlideClick()">+</button>
 <swiper-container class="swiper" #swiperRef init="false">
   <!-- Generate slides -->
-  <swiper-slide *ngFor="let slide of slidesArray as array">
+  <swiper-slide *ngFor="let slide of ConfigurationService.slidesArray as array">
     <!-- grid -->
     <gridster class="gridster" [options]="completeGridsterOptions">
       <!-- Generate tiles -->
@@ -62,13 +61,7 @@
               </span>
             </div>
           </div>
-          <div class="project-build-status-container" *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'api-status'">
-            <div class="project-build-status-text-container">
-                <button mat-mini-fab color="primary" aria-label="" (click)="openApiDialog()">
-                  <ng-icon name="heroPlus"></ng-icon>
-                </button>
-            </div>
-          </div>
+          <api-tile *ngIf="gridItem['hex'] === item['id'] && gridItem.content.type === 'api-status'" [slideId]="slide.hex" [tileId]="gridItem['hex']" [config]="gridItem['content']"></api-tile>
         </div>
         
         <!-- if the tile has no content -->
@@ -88,174 +81,6 @@
   </swiper-slide>
 </swiper-container>
 
-<div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
-  <div class="sidebar-content">
-    <h1>Settings</h1>
-    <button mat-raised-button (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New Slide</button>
-    <button mat-raised-button (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
-    <button mat-raised-button color="warn" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear Config</button>    
-    <h2>Carousel interval in seconds:</h2>
-    <mat-slider
-      [disabled]="carouselAutoPlayOptions.disabled"
-      [max]="carouselAutoPlayOptions.max"
-      [min]="carouselAutoPlayOptions.min"
-      [step]="carouselAutoPlayOptions.step"
-      [discrete]="carouselAutoPlayOptions.discrete"
-      [showTickMarks]="carouselAutoPlayOptions.showTickMarks"
-      [color]="004082">
-      <input matSliderThumb [(ngModel)]="auto_play_duration" (ngModelChange)="setAutoplayDuration(auto_play_duration)">
-    </mat-slider>
-  </div>
-</div>
-
-<style>
-  .swiper {
-    height: 100vh;
-    width: 100vw;
-  }
-
-  .gridster, swiper-slide {
-    height: 100%;
-    background-color: #F1F1E6;
-  }
- 
-  gridster-item {
-    background-color: #F1F1E6;
-    border: 2px solid #004082;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    border-radius: 8px;
-  }
-
-  .delete-button {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    background-color: #5EA9FF;
-    border-radius: 100%;
-    aspect-ratio: 1/1;
-    z-index: 100;
-    opacity: 0;
-    transition: opacity 100ms;
-    border-color: transparent;
-    border-style: solid;
-    padding: 0.25rem;
-    margin: 0.6rem;
-  }
-
-  .add-content-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    min-width: 50%;
-    max-width: 90%; 
-    padding: 1rem;
-    border-radius: 5px;
-  }
-  .add-content-button, .add-content-selector{
-    color: black;
-    background-color: white;
-    float: left;
-  }
-
-  .tile-item-picture {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .mdc-slider__track--inactive {
-    color: gray;
-    background-color: gray;
-  }
-
-  .project-build-status-container {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .project-build-status-text-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: min(3vh,1.7vw);
-  }
-  .build-status-text {
-    /* font-size: xx-large; */
-    font-size: 2em;
-  }
-  gridster-item:hover .delete-button {
-    opacity: 1;
-  }
-
-  .openSidebar {
-    position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    width: 5rem;
-    height: 5rem;
-    z-index: 500;
-  }
-
-  .sidebar {
-    position: fixed;
-    height: 80vh;
-    top: 50%;
-    transform: translateY(-50%);
-    /* right: -40vw; */
-    width: 40vw;
-    background-color: #f2f2e3;
-
-    border-color: #D4A418;
-    border-width: 10px 0rem 10px 10px;
-    border-style: solid;
-    border-radius: 20px 0 20px 20px;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-
-    z-index: 1000;
-    transition: right 300ms;
-  }
-  .sidebar-content {
-    margin-left: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    row-gap: 10px;
-  }
-
-  .add-first-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: lightgray;
-    z-index: 1000;
-  }
-  .add-first-slide-button {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
-    background-color: #D4A418;
-    padding: 3rem;
-    text-align: center;
-    font-size: xx-large;
-  }
-</style>
+<app-sidebar></app-sidebar>
 
 <router-outlet></router-outlet>

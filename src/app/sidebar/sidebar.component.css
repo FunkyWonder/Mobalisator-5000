@@ -1,0 +1,49 @@
+.sidebar-content {
+    margin-left: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 10px;
+}
+
+.openSidebar {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    width: 5rem;
+    height: 5rem;
+    z-index: 500;
+}
+
+.sidebar {
+    position: fixed;
+    height: 80vh;
+    top: 50%;
+    transform: translateY(-50%);
+    /* right: -40vw; */
+    width: 40vw;
+    background-color: #f2f2e3;
+
+    border-color: #D4A418;
+    border-width: 10px 0rem 10px 10px;
+    border-style: solid;
+    border-radius: 20px 0 20px 20px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+
+    z-index: 1000;
+    transition: right 300ms;
+}
+
+  .add-first-slide-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background-color: #D4A418;
+    padding: 3rem;
+    text-align: center;
+    font-size: xx-large;
+  }

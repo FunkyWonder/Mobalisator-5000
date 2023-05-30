@@ -1,0 +1,20 @@
+<div #sidebar class="sidebar" [ngStyle]="{'right': sidebarVisible === true ? '0vw' : '-40vw'}">
+    <div class="sidebar-content">
+        <h1>Settings</h1>
+        <button mat-raised-button (click)="onNewSlideClick()" (keydown.space)="$event.preventDefault()">New
+            Slide</button>
+        <button mat-raised-button (click)="onAddTile()" (keydown.space)="$event.preventDefault()">Add tile</button>
+        <button mat-raised-button color="warn" (click)="onClearConfig()" (keydown.space)="$event.preventDefault()">Clear
+            Config</button>
+        <h2>Carousel interval in seconds:</h2>
+        <mat-slider [disabled]="carouselAutoPlayOptions.disabled" [max]="carouselAutoPlayOptions.max"
+            [min]="carouselAutoPlayOptions.min" [step]="carouselAutoPlayOptions.step"
+            [discrete]="carouselAutoPlayOptions.discrete" [showTickMarks]="carouselAutoPlayOptions.showTickMarks"
+            [color]="004082">
+            <input matSliderThumb [(ngModel)]="auto_play_duration"
+                (ngModelChange)="ConfigurationService.setAutoplayDuration(auto_play_duration)">
+        </mat-slider>
+    </div>
+</div>
+
+<button mat-fab *ngIf="ConfigurationService.slidesArray.length === 0 || ConfigurationService.slidesArray === undefined" class="add-first-slide-button" (click)="onNewSlideClick()">+</button> -->

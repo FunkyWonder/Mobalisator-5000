@@ -14,18 +14,18 @@ export interface ApiDialogData {
   apiUrl: string;
   apiUrlHint: string;
   accept: string;
-  decline: string;
 }
 
 @Component({
-  selector: 'api-dialog',
-  templateUrl: 'api-dialog.html',
+  selector: 'app-api-dialog',
+  templateUrl: './api-dialog.component.html',
+  styleUrls: ['./api-dialog.component.css'],
   standalone: true,
   imports: [MatDialogModule, MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule],
 })
-export class ApiDialog {
+export class ApiDialogComponent {
   constructor(
-    public dialogRef: MatDialogRef<ApiDialog>,
+    public dialogRef: MatDialogRef<ApiDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ApiDialogData,
   ) { }
 

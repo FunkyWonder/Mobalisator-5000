@@ -1,16 +1,18 @@
-import { Component, ElementRef, HostListener, Inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, Inject, NgModule, ViewChild } from '@angular/core';
 import Swiper from 'swiper';
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
 import { randomHex, isNumber } from './utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TextItem, TileItem, Slide, ProjectBuildStatusItem, PictureItem, QueueStatusItem, ProjectIdItem, LastActivityItem, ApiStatusItem } from './interfaces';
 import { GridsterCallbacks } from './gridster-callbacks';
-import { swiperOptions, defaultDashboard, gridsterOptions, carouselAutoPlayOptions } from './config';
+import { swiperOptions, defaultDashboard, gridsterOptions, carouselAutoPlayOptions, tileItems } from './config';
 import { getProjectCoverage, projectCoverageToHexColor, getProjectStatus, getQueueDuration, getLastActivity } from './api';
 import { HttpClient } from '@angular/common/http';
-import { ApiDialog } from './api-dialog.component'
 import { ajax } from 'rxjs/ajax';
-
+import { ConfigurationService } from './services/configuration.service';
+import { SwipeService } from './services/swiper.service';
+import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-root',
@@ -18,80 +20,49 @@ import { ajax } from 'rxjs/ajax';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  constructor(private _snackBar: MatSnackBar, public dialog: MatDialog, private http: HttpClient) {
-    // Bind the method to the current instance of AppComponent
-    this.onNewSlideClick = this.onNewSlideClick.bind(this);
-    this.itemChange = this.itemChange.bind(this);
-
+  constructor(
+    private _snackBar: MatSnackBar,
+    public dialog: MatDialog,
+    private http: HttpClient,
+    public ConfigurationService: ConfigurationService,
+    private SwipeService: SwipeService,
+  ) {
+    this.setupMethods();
   }
-  
+
+  // Methods
+  private setupMethods(): void {
+    this.itemChange = this.itemChange.bind(this);
+  }
+
+
   getProjectCoverage = getProjectCoverage;
   projectCoverageToHexColor = projectCoverageToHexColor;
   getProjectStatus = getProjectStatus;
   getQueueDuration = getQueueDuration;
   getLastActivity = getLastActivity;
+  tileItems = tileItems;
   carouselAutoPlayOptions = carouselAutoPlayOptions;
 
   title = 'Mobalisator-5000';
 
-  // Items which can be added to a tile
-  // TODO: make it so that instead of matching a string with a particular interface we just straight up match the type
-  tileItems = [
-    { "friendly_name": "Text", "content": { type: "text", text: "Click to edit text!" } as TextItem },
-    { "friendly_name": "Picture", "content": { type: "picture", path: "https://www.dewerkwijzer.nl/wp-content/uploads/2019/10/MOBA_logo.jpg" } as PictureItem },
-    { "friendly_name": "Project Build Status", "content": { type: "project-build-status", title: "Project Build Status:"} as ProjectBuildStatusItem },
-    { "friendly_name": "Queue Duration", "content": { type: "queue-status", title: "Queue Duration:" } as QueueStatusItem },
-    { "friendly_name": "Project ID", "content": { type: "project-id", title: "Project ID: "} as ProjectIdItem },
-    { "friendly_name": "Last Activity", "content": { type: "last-activity", title: "Last activity on:"} as LastActivityItem },
-    { "friendly_name": "Api Status", "content": { type: "api-status", title: "Api Status:" } as ApiStatusItem }
-  ];
+  @ViewChild('swiperRef',
+    {
+      static: true,
+    })
+  _swiperRef!: ElementRef;
+  swiper?: Swiper;
 
-  responseStatus = 0;
-  reponseStatusArray = [{ "apiName": "", "apiUrl": ""}]
+  // getApiStatus(url: string) {
+  //   const apiData = ajax(url);
+  //   apiData.subscribe(res => this.responseStatus = res.status);
+  // }
 
-  getApiStatus(url: string) {
-    const apiData = ajax(url);
-    apiData.subscribe(res => this.responseStatus = res.status);
-  }
-  
   queueMinutes: Number = 0;
   queueSeconds: Number = 0;
 
   private gridsterCallbacks: GridsterCallbacks = new GridsterCallbacks();
   completeGridsterOptions!: GridsterConfig;
-
-  @ViewChild('swiperRef', { static: true })
-  private _swiperRef!: ElementRef;
-  swiper?: Swiper;
-
-  getConfig() {
-    var currentConfig = localStorage.getItem("project_config");
-    // Generate a default config if no config was ever saved before
-    if (currentConfig == null) {
-      this.setConfig([]);
-      return [];
-    }
-    return JSON.parse(currentConfig);
-  };
-
-  setConfig(config: Array<any>) {
-    localStorage.setItem("project_config", JSON.stringify(config));
-  }
-
-  auto_play_duration: number = this.getAutoplayDuration();
-
-  setAutoplayDuration(duration: number) {
-    localStorage.setItem("auto_play_duration", String(duration)); // in seconds
-    this.auto_play_duration = duration;
-  }
-
-  getAutoplayDuration(): number {
-    var duration = localStorage.getItem("auto_play_duration"); // in seconds
-    if (duration == null) {
-      return 60; // 60 Seconds
-    }
-    return Number(duration);
-  }
 
   itemChange(
     item: GridsterItem,
@@ -101,10 +72,10 @@ export class AppComponent {
 
     var hex = itemComponent.el.id;
     const items = Object.values(itemComponent.gridster.grid).map((gridItem) => gridItem.item); // Retrieve the current grid
-    const hexValues = this.slidesArray.map((item) => item.hex); // Put the hex values of every slide in an array
-    this.slidesArray[hexValues.indexOf(hex)].grid.layout = items; // Update the slide we're on with the new items
+    const hexValues = this.ConfigurationService.slidesArray.map((item) => item.hex); // Put the hex values of every slide in an array
+    this.ConfigurationService.slidesArray[hexValues.indexOf(hex)].grid.layout = items; // Update the slide we're on with the new items
 
-    this.setConfig(this.slidesArray);
+    this.ConfigurationService.setConfig(this.ConfigurationService.slidesArray);
   }
 
   @HostListener('document:keypress', ['$event'])
@@ -118,63 +89,33 @@ export class AppComponent {
       this.swiper?.slideNext();
       //Down arrow pressed
     }
-
-    if (event.key == " ") {
-      this.onSidebarOpen();
-      // Spacebar pressed
-    }
   };
-
-  onNewSlideClick() {
-    var newHex = randomHex();
-    const dialogRef = this.dialog.open(ProjectIdDialog, { data: { title: "Project ID", subtitle: "A project ID is to view project information", accept: "Confirm", projectId: 0 } });
-    dialogRef.afterClosed().subscribe(result => {
-      var newHex = randomHex();
-      if (isNumber(result) != true) {
-        this._snackBar.open("Failed to add slide. The given project ID wasn't a number.");
-        return;
-      }
-      this.slidesArray.push({ hex: newHex, 
-                              projectId: Number(result), 
-                              grid: { layout: defaultDashboard, items: [] },
-                              info: {
-                                last_activity_at: getLastActivity(Number(result)),
-                                project_status: {
-                                  color: projectCoverageToHexColor(getProjectCoverage(Number(result))),
-                                  status: getProjectStatus(Number(result)),
-                                }
-                              }
-                            })
-      this.setConfig(this.slidesArray);
-      this._snackBar.open("Slide added");
-    });
-  }
 
   onRemoveTile(slideId: string, tileId: string) {
     // Prompt the user to make sure they want to remove the tile
-    const dialogRef = this.dialog.open(ConfirmDialog, { data: { title: "Are you sure", subtitle: "Do you really want to remove this tile?", decline: "No", accept: "Yes" } });
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { data: { title: "Are you sure", subtitle: "Do you really want to remove this tile?", decline: "No", accept: "Yes" } });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result: boolean) => {
       if (result != true) { // No was pressed
         return
       }
 
-      const slideIdIndex = this.slidesArray.findIndex(slide => slide.hex === slideId);
+      const slideIdIndex = this.ConfigurationService.slidesArray.findIndex(slide => slide.hex === slideId);
 
       if (slideIdIndex === -1) {
         return; // Slide not found, exit the function
       }
 
-      const slideTilesLayout = this.slidesArray[slideIdIndex].grid.layout;
+      const slideTilesLayout = this.ConfigurationService.slidesArray[slideIdIndex].grid.layout;
 
       if (slideTilesLayout.length == 1) { // If the slide has no tiles left after we delete this one
         // Remove the slide
-        this.slidesArray.splice(slideIdIndex, 1);
-        this.setConfig(this.slidesArray);
+        this.ConfigurationService.slidesArray.splice(slideIdIndex, 1);
+        this.ConfigurationService.setConfig(this.ConfigurationService.slidesArray);
         return;
       }
 
-      const tileIdIndex = this.slidesArray[slideIdIndex].grid.layout.findIndex(tile => tile['id'] === tileId);
+      const tileIdIndex = this.ConfigurationService.slidesArray[slideIdIndex].grid.layout.findIndex(tile => tile['id'] === tileId);
 
       if (tileIdIndex === -1) {
         return; // Tile not found, exit the function
@@ -182,18 +123,18 @@ export class AppComponent {
 
       slideTilesLayout.splice(tileIdIndex, 1); // Remove the tile
 
-      this.slidesArray[slideIdIndex].grid.layout = slideTilesLayout
+      this.ConfigurationService.slidesArray[slideIdIndex].grid.layout = slideTilesLayout
 
-      this.setConfig(this.slidesArray);
+      this.ConfigurationService.setConfig(this.ConfigurationService.slidesArray);
     });
   }
 
   onAddContent(slideId: string, tileId: string, itemToPush: any) {
-    const slideIdValues = Object.values(this.slidesArray).map((slide) => slide.hex); // Retrieve the current grid
+    const slideIdValues = Object.values(this.ConfigurationService.slidesArray).map((slide) => slide.hex); // Retrieve the current grid
     const slideIdIndex = slideIdValues.indexOf(slideId); // Get slide index
 
     // Check if the tile already has content, in that case we don't do anything
-    const items = this.slidesArray[slideIdIndex].grid.items as Array<TileItem>;
+    const items = this.ConfigurationService.slidesArray[slideIdIndex].grid.items as Array<TileItem>;
 
     items.forEach((item) => {
       if (item.hex === tileId) {
@@ -205,113 +146,44 @@ export class AppComponent {
     itemToPush["hex"] = tileId;
 
     // Push the new content into the array
-    this.slidesArray[slideIdIndex].grid.items?.push(itemToPush);
+    this.ConfigurationService.slidesArray[slideIdIndex].grid.items?.push(itemToPush);
 
     // Update hasItem:
-    const tileIdIndex = Object.values(this.slidesArray[slideIdIndex].grid.layout)
+    const tileIdIndex = Object.values(this.ConfigurationService.slidesArray[slideIdIndex].grid.layout)
       .map(tile => tile['id'])
       .indexOf(tileId);
 
-    this.slidesArray[slideIdIndex].grid.layout[tileIdIndex]['hasItem'] = true;
+    this.ConfigurationService.slidesArray[slideIdIndex].grid.layout[tileIdIndex]['hasItem'] = true;
 
-    this.setConfig(this.slidesArray);
+    this.ConfigurationService.setConfig(this.ConfigurationService.slidesArray);
   }
 
   updateTextContent(slideId: string, tileId: string, newTextEvent: Event) {
     console.log(Event);
   }
 
-  onAddTile() {
-    var slideIdIndex: number = this.swiper?.activeIndex as number;
-
-    // Iterate over all slides and get the max x and y and add one to them to get the new position of the tile
-    var maxX: number = 0;
-    var maxY: number = 0;
-    var tiles: Array<GridsterItem> = this.slidesArray[slideIdIndex].grid.layout;
-    for (let tile in tiles) {
-      if (tiles[tile].x + tiles[tile].cols > maxX) { // Add the width to the position to get the total width
-        maxX = tiles[tile].x;
-      }
-      if (tiles[tile].y + tiles[tile].rows > maxY) { // Add the height to the position to get the total height
-        maxY = tiles[tile].y;
-      }
-    }
-
-    this.slidesArray[slideIdIndex].grid.layout.push({ cols: 1, rows: 1, y: maxY + 2, x: maxX + 2, id: randomHex() });
-
-    this.setConfig(this.slidesArray);
-  }
-
-  onClearConfig() {
-    // Prompt the user to make sure they want to clear the config
-    const dialogRef = this.dialog.open(ConfirmDialog, { data: { title: "Are you sure", subtitle: "Do you really want to clear the config?", decline: "No", accept: "Yes" } });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result != true) { // No was pressed
-        return
-      }
-
-      this.setConfig([]);
-      this.slidesArray = [];
-      this._snackBar.open("Configuration wiped!");
-    });
-  }
-
-  sidebarVisible: boolean = false;
-
-  onSidebarOpen() {
-    this.sidebarVisible = !this.sidebarVisible;
-  }
-
   updateInfo() {
     // Update all info values in this.slidesArray
-    for (let slide in this.slidesArray) {
-      var projectId = this.slidesArray[slide].projectId;
-      this.slidesArray[slide].info.last_activity_at = getLastActivity(projectId);
-      this.slidesArray[slide].info.project_status.color = projectCoverageToHexColor(getProjectCoverage(projectId));
-      this.slidesArray[slide].info.project_status.status = getProjectStatus(projectId);
+    for (let slide in this.ConfigurationService.slidesArray) {
+      var projectId = this.ConfigurationService.slidesArray[slide].projectId;
+      this.ConfigurationService.slidesArray[slide].info.last_activity_at = getLastActivity(projectId);
+      this.ConfigurationService.slidesArray[slide].info.project_status.color = projectCoverageToHexColor(getProjectCoverage(projectId));
+      this.ConfigurationService.slidesArray[slide].info.project_status.status = getProjectStatus(projectId);
     }
   }
 
-  openApiDialog() {
-    // const dialogRef = this.dialog.open(ApiDialog, { data: { title: "Enter API info", subtitle: "", apiName: "", apiNameHint: "API url", apiUrl: "", apiUrlHint: string;
-    //   accept: string;
-    //   decline: string;
-    // }  });
-    // dialogRef.afterClosed().subscribe(result => {
-    //   var newHex = randomHex();
-    //   if (isNumber(result) != true) {
-    //     this._snackBar.open("Failed to add slide. The given project ID wasn't a number.");
-    //     return;
-    //   }
-    //   this.slidesArray.push({ hex: newHex, 
-    //                           projectId: Number(result), 
-    //                           grid: { layout: defaultDashboard, items: [] },
-    //                           info: {
-    //                             last_activity_at: getLastActivity(Number(result)),
-    //                             project_status: {
-    //                               color: projectCoverageToHexColor(getProjectCoverage(Number(result))),
-    //                               status: getProjectStatus(Number(result)),
-    //                             }
-    //                           }
-    //                         })
-    //   this.setConfig(this.slidesArray);
-    //   this._snackBar.open("Slide added");
-    // });
-  }
-
-  slidesArray: Array<Slide> = this.getConfig();
-
   ngOnInit() {
-    this.getApiStatus("https://jsonplaceholder.typicode.com");
-    console.log(this.responseStatus);
+    // this.getApiStatus("https://jsonplaceholder.typicode.com");
+    // console.log(this.responseStatus);
+
+    this.ConfigurationService.auto_play_duration = this.ConfigurationService.getAutoplayDuration();
 
     const swiperEl = this._swiperRef.nativeElement
     Object.assign(swiperEl,
       {
         ...swiperOptions,
         autoplay: {
-          delay: this.auto_play_duration*1000, // Miliseconds to going back to autoplay
+          delay: this.ConfigurationService.auto_play_duration * 1000, // Miliseconds to going back to autoplay
           disableOnInteraction: false,
         }
       })
@@ -339,7 +211,12 @@ export class AppComponent {
       this.updateInfo();
     }, 1000);
 
-    this.auto_play_duration = this.getAutoplayDuration();
+    setInterval(() => {
+      if (this.swiper?.activeIndex !== undefined) {
+        this.SwipeService.activeIndex = this.swiper?.activeIndex;
+      }
+    }, 100);
+
   }
 
   ngAfterViewChecked() {
@@ -348,56 +225,3 @@ export class AppComponent {
   }
 }
 
-import { MatDialog, MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-
-export interface ConfirmDialogData {
-  title: string;
-  subtitle: string;
-  decline: string;
-  accept: string;
-}
-
-@Component({
-  selector: 'confirm-dialog',
-  templateUrl: 'confirm-dialog.html',
-  standalone: true,
-  imports: [MatDialogModule, MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule],
-})
-export class ConfirmDialog {
-  constructor(
-    public dialogRef: MatDialogRef<ConfirmDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData,
-  ) { }
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-}
-
-export interface ProjectIdDialogData {
-  title: string;
-  subtitle: string;
-  projectId: number;
-  accept: string;
-}
-
-@Component({
-  selector: 'project-id-dialog',
-  templateUrl: 'project-id-dialog.html',
-  standalone: true,
-  imports: [MatDialogModule, MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule],
-})
-export class ProjectIdDialog {
-  constructor(
-    public dialogRef: MatDialogRef<ProjectIdDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: ProjectIdDialogData,
-  ) { }
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-}

@@ -17,12 +17,19 @@ import { FormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSliderModule } from '@angular/material/slider';
 import { HttpClientModule } from '@angular/common/http';
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { ProjectIdDialogComponent } from './project-id-dialog/project-id-dialog.component';
+import { ApiTileComponent } from './api-tile/api-tile.component';
+import { ApiDialogComponent } from './api-dialog/api-dialog.component';
 
 register();
 
 @NgModule({
   declarations: [
     AppComponent,
+    SidebarComponent,
+    ApiTileComponent,
   ],
   imports: [
     BrowserModule,

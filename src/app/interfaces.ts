@@ -105,6 +105,9 @@ export interface ApiStatusItem {
     type: 'api-status';
     title: string;
     status: string;
+    apiConfigurationFinished: boolean;
+    apiName: string;
+    apiUrl: string;
     style?: {
         size: Number | "auto";
         font: string;

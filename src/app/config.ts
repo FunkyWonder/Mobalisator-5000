@@ -1,4 +1,5 @@
 import { GridsterConfig, GridsterItem, GridType, CompactType, DisplayGrid, GridsterComponentInterface, GridsterItemComponentInterface, GridsterItemComponent } from 'angular-gridster2';
+import { TextItem, PictureItem, ApiStatusItem, LastActivityItem, ProjectBuildStatusItem, ProjectIdItem, QueueStatusItem } from './interfaces';
 import { randomHex } from './utils';
 
 export const swiperOptions = {
@@ -87,4 +88,16 @@ export const gridsterOptions = {
 export const defaultDashboard: Array<GridsterItem> = [
     { cols: 2, rows: 1, y: 0, x: 0, id: randomHex(), hasItem: false, selectedItem: "" },
     { cols: 2, rows: 2, y: 0, x: 2, id: randomHex(), hasItem: false, selectedItem: "" }
+];
+
+// Items which can be added to a tile
+// TODO: make it so that instead of matching a string with a particular interface we just straight up match the type
+export const tileItems: Array<{friendly_name: string, content: TextItem | PictureItem | ProjectBuildStatusItem | QueueStatusItem | ProjectIdItem | LastActivityItem | ApiStatusItem}> = [
+{ "friendly_name": "Text", "content": { type: "text", text: "Click to edit text!" } as TextItem },
+{ "friendly_name": "Picture", "content": { type: "picture", path: "https://www.dewerkwijzer.nl/wp-content/uploads/2019/10/MOBA_logo.jpg" } as PictureItem },
+{ "friendly_name": "Project Build Status", "content": { type: "project-build-status", title: "Project Build Status:"} as ProjectBuildStatusItem },
+{ "friendly_name": "Queue Duration", "content": { type: "queue-status", title: "Queue Duration:" } as QueueStatusItem },
+{ "friendly_name": "Project ID", "content": { type: "project-id", title: "Project ID: "} as ProjectIdItem },
+{ "friendly_name": "Last Activity", "content": { type: "last-activity", title: "Last activity on:"} as LastActivityItem },
+{ "friendly_name": "API Status", "content": { type: "api-status", title: "API Status:", apiConfigurationFinished: false,  } as ApiStatusItem }
 ];

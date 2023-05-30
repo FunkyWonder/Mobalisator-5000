@@ -1,0 +1,10 @@
+<div class="api-tile">
+    <div class="text-container">
+        <button *ngIf="apiConfigurationFinished === false || apiConfigurationFinished === undefined" mat-mini-fab color="primary" aria-label="" (click)="openApiDialog()">
+          <ng-icon name="heroPlus"></ng-icon>
+        </button>
+        <h1 *ngIf="apiConfigurationFinished === true">{{ config.apiName }}</h1>
+        <p *ngIf="tileOnline === true">Online</p>
+        <p *ngIf="tileOnline === false">Offline</p>
+    </div>
+  </div>

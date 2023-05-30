@@ -1,0 +1,84 @@
+.swiper {
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .gridster, swiper-slide {
+    height: 100%;
+    background-color: #F1F1E6;
+  }
+ 
+  gridster-item {
+    background-color: #F1F1E6;
+    border: 2px solid #004082;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border-radius: 8px;
+  }
+
+  .delete-button {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background-color: #5EA9FF;
+    border-radius: 100%;
+    aspect-ratio: 1/1;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 100ms;
+    border-color: transparent;
+    border-style: solid;
+    padding: 0.25rem;
+    margin: 0.6rem;
+  }
+
+  .add-content-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    min-width: 50%;
+    max-width: 90%; 
+    padding: 1rem;
+    border-radius: 5px;
+  }
+  .add-content-button, .add-content-selector{
+    color: black;
+    background-color: white;
+    float: left;
+  }
+
+  .tile-item-picture {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .project-build-status-container {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .project-build-status-text-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: min(3vh,1.7vw);
+  }
+  .build-status-text {
+    /* font-size: xx-large; */
+    font-size: 2em;
+  }
+  gridster-item:hover .delete-button {
+    opacity: 1;
+  }
